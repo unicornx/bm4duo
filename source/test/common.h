@@ -24,7 +24,7 @@
 #include "timer.h"
 
 
-extern void test_led();
+extern void test_gpio();
 extern void test_uart_irq();
 extern void test_pwm();
 extern void test_rtc();

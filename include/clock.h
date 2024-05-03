@@ -3,31 +3,22 @@
 
 #include "mmap.h"
 
-#define REG_CLK_ENABLE_REG0       (CLKGEN_BASE)
-#define REG_CLK_ENABLE_REG1       (CLKGEN_BASE + 0x4)
-#define REG_CLK_BYPASS_SEL_REG      (CLKGEN_BASE + 0x30)
-#define REG_CLK_BYPASS_SEL_REG2      (CLKGEN_BASE + 0x34)
-#define REG_CLK_DIV0_CTL_CA53_REG   (CLKGEN_BASE + 0x40)
-#define REG_CLK_DIV0_CTL_CPU_AXI0_REG (CLKGEN_BASE + 0x48)
-#define REG_CLK_DIV0_CTL_TPU_AXI_REG  (CLKGEN_BASE + 0x54)
-#define REG_CLK_DIV0_CTL_TPU_FAB_REG  (CLKGEN_BASE + 0x5C)
+#define REG_CLK_EN_0			(CLKGEN_BASE)
+#define REG_CLK_EN_1			(CLKGEN_BASE + 0x004)
+#define REG_CLK_EN_2			(CLKGEN_BASE + 0x008)
+#define REG_CLK_EN_3			(CLKGEN_BASE + 0x00c)
+#define REG_CLK_EN_4			(CLKGEN_BASE + 0x010)
+#define REG_CLK_SEL_0			(CLKGEN_BASE + 0x020)
+#define REG_CLK_BYP_0			(CLKGEN_BASE + 0x030)
+#define REG_CLK_BYP_1			(CLKGEN_BASE + 0x034)
+#define REG_DIV_CLK_A53_0		(CLKGEN_BASE + 0x040)
+#define REG_DIV_CLK_CPU_AXI0		(CLKGEN_BASE + 0x048)
+#define REG_DIV_CLK_TPU			(CLKGEN_BASE + 0x054)
 
+#define CLK_PLL_BASE			(CLKGEN_BASE + 0x800)
 
-#define CLK_PLL_BASE	CLKGEN_BASE + 0x800 // 0x03002800
+#define CLK_EN_1_8_BIT	BIT(8) // clk_apb_pwm
 
-
-
-
-#define CLK_DIV_BASE	CLKGEN_BASE + 0 // 0x03002000
-
-#define CLK_GATE_CLK_EN_1	CLK_DIV_BASE + 0x004
-#define CLK_GATE_CLK_EN_1_8_BIT	BIT(8) // clk_apb_pwm
-
-#define CLK_GATE_CLK_EN_4	CLK_DIV_BASE + 0x010
-#define CLK_GATE_CLK_EN_4_4_BIT	BIT(4) // clk_pwm_src
-
-#define CLK_MUX_CLK_SEL_0	CLK_DIV_BASE + 0x020
-#define CLK_GATE_CLK_EN_4_4_BIT	BIT(4) // clk_pwm_src
-
+#define CLK_EN_4_4_BIT	BIT(4) // clk_pwm_src
 
 #endif // __CLOCK_H__

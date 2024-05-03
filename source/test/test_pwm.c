@@ -17,15 +17,15 @@ void test_pwm1()
 #if 1
 	// Enable Gate clk clk_apb_pwm
 	//mmio_write_32(0x03002004, mmio_read_32(0x03002004) | (1 << 8));
-	val = mmio_read_32(CLK_GATE_CLK_EN_1);
-	val |= CLK_GATE_CLK_EN_1_8_BIT;
-	mmio_write_32(CLK_GATE_CLK_EN_1, val);
+	val = mmio_read_32(REG_CLK_EN_1);
+	val |= CLK_EN_1_8_BIT;
+	mmio_write_32(REG_CLK_EN_1, val);
 	
 	// Enable Gate Clock clk_pwm_src
 	//mmio_write_32(0x03002010, mmio_read_32(0x03002010) | (1 << 4));
-	val = mmio_read_32(CLK_GATE_CLK_EN_4);
-	val |= CLK_GATE_CLK_EN_4_4_BIT;
-	mmio_write_32(CLK_GATE_CLK_EN_4, val);
+	val = mmio_read_32(REG_CLK_EN_4);
+	val |= CLK_EN_4_4_BIT;
+	mmio_write_32(REG_CLK_EN_4, val);
 #endif
 
 	// Page 90, clk_sel_0
@@ -115,10 +115,10 @@ void test_pwm3()
 	// 但是还无法找到 TRM 中有关该两个时钟源从哪里来的
 #if 0	
 	val = mmio_read_32(CLK_GATE_CLK_EN_1);
-	printf("CLK_GATE_CLK_EN_1 = 0x%x\n", val);
+	printf("REG_CLK_EN_1 = 0x%x\n", val);
 
-	val = mmio_read_32(CLK_GATE_CLK_EN_4);
-	printf("CLK_GATE_CLK_EN_4 = 0x%x\n", val);
+	val = mmio_read_32(REG_CLK_EN_4);
+	printf("REG_CLK_EN_4 = 0x%x\n", val);
 #endif
 
 	// TRM 要求：

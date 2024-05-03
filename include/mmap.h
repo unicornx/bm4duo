@@ -13,7 +13,7 @@
 #define DDR_FIREWALL_BASE   (SEC_BASE + 0x000A0000)
 
 #define PINMUX_BASE         (0x03001000)
-#define CLKGEN_BASE         (0x03002000) // Page 67
+#define CLKGEN_BASE         (0x03002000)
 #define RSTGEN_BASE         (0x03003000)
 #define TEMPSEN_BASE        (TOP_BASE + 0xE0000)
 #define WDT_BASE            (TOP_BASE + 0x11000)

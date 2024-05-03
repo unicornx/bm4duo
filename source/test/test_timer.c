@@ -1,16 +1,24 @@
 #include "common.h"
 
-// 我们使用大核 906B
+// 本实验演示定时器的使用
+
+// TimerNLoadCount 是一个 buffer，实际计数器开始计数时会将保存在 TimerNLoadCount
+// 中的值加载到 Timer 内部实际的计数器中再开始计时。
+// 系统 Timer 可选采用外部时钟（xtal），频率为 25MHz 或者内部时钟，频率为 32KHz。
+// 具体选择采用系统控制器中的 top_timer_clk_sel
+// 默认采用 xtal 25Mhz 的频率。1 次计数的周期为为 40 ns，即硬件精度是 40ns
+// 最大的硬件计时范围是：2^32 * 40 / 10^9 ~= 172s，这也意味着如果需要更大的
+// 计时范围需要设计软件定时器进行扩展。
 
 // Timer 有以下 2 种计数模式：
 // - 自由运行模式: 定时器持续计数，当计数值减到 0 时又自动回转到其最大值，
-//   并继续计数。计数长度最大值为 0xFFFF_FFFF。
+//   并继续计数。计数长度最大值为 0xFFFFFFFF。
 // - 用户定义计数模式: 定时器持续计数，当计数值减到 0 时从 TimerNLoadCount (N=1~8) 
 //   寄存器中再次载入初值并继续计数。
 
-// TRM 手册上的描述令人迷惑，我实验的结果是：
 // 启动定时器后，定时器第一次 timeout 的时间就是按照 TimerNLoadCount 计算。
-// 即使 TimerNLoadCount 的值为 0，那么定时器立刻到期。
+// 如果我们没有设置 TimerNLoadCount 的值 或者 TimerNLoadCount 的值为 0，
+// 那么定时器立刻到期。
 // 如果我们没有 disable 定时器，则此后的行为根据运行模式：
 // 如果是自由运行模式，则从第二次开始，计数器值自动转回到最大值 0xffffffff，所以
 // 此后的 timeout 为大约 172s
@@ -21,8 +29,7 @@
 // 本例子演示，用户自定义计数模式下，
 // 首先设置 TimerNLoadCount 为 1s，第一次 1s 到期后设置 TimerNLoadCount 为 2s，
 // 第二次 2s 到期后设置 TimerNLoadCount 为 3s。
-// 三次 3s 到期后停止定时器结束演示。
-
+// 依次类推，5 次到期后停止定时器结束演示。
 
 typedef int (*timer_callback_t)(void *);
 struct hal_timer {
@@ -67,11 +74,6 @@ static inline void hal_timer_enable(struct hal_timer *timer)
 	mmio_write_32((uintptr_t)&timern_regs->TimerNControlReg, val);
 }
 
-// TimerNLoadCount 是一个 buffer，实际计数器开始计数时会将保存在 TimerNLoadCount
-// 中的值加载到 Timer 内部实际的计数器中
-// 按照 xtal 25Mhz 的频率。1 次计数的周期为为 40 ns，即硬件精度是 40ns
-// 最大的硬件计时范围是：2^32 * 40 / 10^9 ~= 172s
-// 如果需要更大的计时范围需要设计软件定时器进行扩展。
 #define NS_PER_TICK		40
 // top: Time Out Period, 单位 us
 static inline void hal_timer_set_top(struct hal_timer *timer, uint64_t top)
@@ -144,10 +146,8 @@ struct hal_timer * hal_timer_init(uint8_t timer_id)
 		return NULL;
 	}
 
-	// 系统 Timer 可选 25MHz /32KHz 计数时钟。使用 reg_timer_clk_sel 做选择。
 	// 0：使用 xtal 25MHz， 1：使用内部 32KHz
 	// FIXME：这个可能不需要设置，默认是 0x00
-	//mmio_write_32(0x03000000 + 0x1a0, 0x00);
 	mmio_write_32(TOP_BASE + TOP_TOP_TIMER_CLK_SEL, 0x00);
 
 	timer = &g_timer[timer_id];
@@ -160,7 +160,6 @@ struct hal_timer * hal_timer_init(uint8_t timer_id)
 
 	hal_timer_setmode(timer, MODE_USERDEFINED);
 
-	//timer_log("request_irq %d\n", TIMER_IRQ(timer_id));
 	// 注册定时器中断，并传入 timer 作为 arg
 	request_irq(TIMER_IRQ(timer_id), hal_timer_irq_handler, 0, "timer_irq", timer);
 

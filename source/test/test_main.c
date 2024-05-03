@@ -14,9 +14,9 @@ int testcase_main(void)
 	printf("====> Running CLOCK example ......\n");
 	test_clock();
 
-#elif defined(CONFIG_TEST_UART)
-	printf("====> Running UART example ......\n");
-	test_uart_irq();
+#elif defined(CONFIG_TEST_IRQ)
+	printf("====> Running IRQ example ......\n");
+	test_irq();
 
 #elif defined(CONFIG_TEST_PWM)
 	printf("====> Running PWM example ......\n");

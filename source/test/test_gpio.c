@@ -69,7 +69,7 @@ static void test_pinmux_config()
 
 #define DELAY	2500000
 
-void test_gpio()
+void test_gpio(int loop)
 {
 	uint32_t val = 0;
 
@@ -84,7 +84,7 @@ void test_gpio()
 	mmio_write_32(GPIO_BASE + GPIO_SWPORTA_DDR, val);
 
 	// 循环点亮和熄灭 led，中间通过简单的空指令（nop）循环实现延时。
-	while (1) {
+	while (loop) {
 		// 设置 GPIO 输出高电平， led 亮
 		val = mmio_read_32(GPIO_BASE + GPIO_SWPORTA_DR);
     		val |= 1 << GPIO_CHANNEL;
@@ -100,5 +100,7 @@ void test_gpio()
 
 		// 延迟
 	       	delay(DELAY);
+
+		loop--;
 	}
 }

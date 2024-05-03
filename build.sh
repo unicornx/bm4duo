@@ -1,6 +1,6 @@
 #make clean; make release;
 
-CASES="gpio uart pwm rtc rtc_irq wdt adc i2c timer spi"
+CASES="gpio clock uart pwm rtc rtc_irq wdt adc i2c timer spi"
 
 usage ()
 {

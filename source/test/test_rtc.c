@@ -1,17 +1,20 @@
+/*
+ * 本实验演示 RTC 的使用
+ *
+ * test_rtc 演示 RTC 的计时功能
+ * 先通过 RTC 获取当前时间 t1
+ * 延迟一段时间 T
+ * 再通过 RTC 获取当前时间 t2
+ * 验证 t2 - t1 == T
+ *
+ * test_rtc_irq 演示 RTC 的 alarm 功能
+ * 设置闹钟，timeout 后产生 alarm 中断
+ */
+
 #include "common.h"
 
-// test_rtc 演示 RTC 的计时功能
-// 先通过 RTC 获取当前时间 t1
-// 延迟一段时间 T
-// 再通过 RTC 获取当前时间 t2
-// 验证 t2 - t1 == T
-
-// test_rtc_irq 演示 RTC 的 alarm 功能
-// 设置闹钟，timeout 后产生 alarm 中断
-
-
 // 粗调
-static void cv1800_rtc_32k_coarse_val_calib()
+static void rtc_32k_coarse_val_calib()
 {
 	uint32_t analog_calib_value = 0;
 	uint32_t fc_coarse_time1 = 0;
@@ -26,8 +29,8 @@ static void cv1800_rtc_32k_coarse_val_calib()
 	value = mmio_read_32(RTC_CORE_REG_BASE + RTC_ANA_CALIB);
 	value &= ~(1 << 31);
 	mmio_write_32(RTC_CORE_REG_BASE + RTC_ANA_CALIB, value);
-	//opdelay(25000000); // about 5.7s udelay(200);
-	opdelay(5000);
+	// 加些延迟确保上述设置生效
+	udelay(200);
 
 	// 设置 RTC_SEC_PULSE_GEN.RTC_SEL_SEC_PULSE 为 0
 	// Select second pulse signal source 为 signal generated internally
@@ -66,7 +69,6 @@ static void cv1800_rtc_32k_coarse_val_calib()
 		// TRM 上说此时要关闭粗调，但是我试了不行，反正后面还是要继续，所以就不关了
 		//mmio_write_32(RTC_CTRL_REG_BASE + RTC_FC_COARSE_EN, 0);
 		//udelay(400);
-		//opdelay(1000000);
 
 		// 读取 fc_coarse_cal.fc_coarse_value, fc_coarse_cal 的低 16 位
 		// 我理解所谓的校准，就是利用高精度的相对准确的 25Mhz 的外部时钟，
@@ -106,14 +108,13 @@ static void cv1800_rtc_32k_coarse_val_calib()
 		}
 		printf("RTC_ANA_CALIB: %d\n", analog_calib_value);
 
-		//udelay(500);
-		//opdelay(10000000);
-		opdelay(5000);
+		// 加些延迟确保上述设置生效
+		udelay(200);
 	}
 }
 
 // 细调
-static void cv1800_rtc_32k_fine_val_calib()
+static void rtc_32k_fine_val_calib()
 {
 	uint32_t fc_fine_time1 = 0;
 	uint32_t fc_fine_time2 = 0;
@@ -249,9 +250,9 @@ void rtc_init()
 
 		// 校准分两个阶段
 		// 第一个阶段称之为粗调（coarse tune），第二个阶段称为细调（fine tune）
-		cv1800_rtc_32k_coarse_val_calib();
+		rtc_32k_coarse_val_calib();
 
-		cv1800_rtc_32k_fine_val_calib();
+		rtc_32k_fine_val_calib();
 	}
 
 	time_t seconds;
@@ -298,9 +299,7 @@ void test_rtc()
 
 	// 这里采用死循环耗时来达到延时的目的
 	// 可以通过墙上时钟观察两次打印的时间估计延时时长并和 RTC 的计时值进行比较
-	//opdelay(500000000); // ~113s
-	//opdelay(250000000); // ~57s
-	opdelay(125000000); // ~28s
+	mdelay(20000);
 
 	t = get_current_time();
 	if (NULL == t) 

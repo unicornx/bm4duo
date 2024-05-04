@@ -1,3 +1,7 @@
+/*
+ * 本实验演示 WatchDog 的使用
+ */
+
 #include "common.h"
 
 static int wdt_isr(int intrid, void *priv)
@@ -86,7 +90,6 @@ void wdt_init()
 	// WDT_CR.ITOR_MODE [7]: 1 << 7, the mode of timeout period for initialization
 	mmio_write_32(WATCHDOG1_BASE + WDT_CR, 0x13 | 0x1 << 7 | 0x1 << 6);
 }
-
 
 void test_wdt()
 {

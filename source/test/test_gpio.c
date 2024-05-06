@@ -12,8 +12,21 @@
 
 static inline void delay(unsigned int times)
 {
-	while (times--)
-		__asm__ volatile("nop");
+	// 简单地循环延时
+	// 之所以采用内嵌汇编实现而不是 c，是为了确保循环只涉及访问寄存器，
+	// 如果用 c 实现循环，编译器会生成访存指令，这会导致
+	// 测量延时过程中因为频繁访问内存对计时产生影响。
+	// 具体原因是 test_gpio 函数还会被 test_clock 测试用例复用。
+	// 我们希望看到修改 cpu 时钟后，闪灯频率和时钟频率变化成比例。
+	// 但是涉及访存后，程序的运行速度会受到指令数和访存效率的双重影响，
+	// 这会导致无法方便观察到变化成比例的现象。具体参考 test_gpio 实验的说明。
+	__asm__ volatile(
+		"li t1, 0;\
+		mv t2, %0;\
+		loop:\
+		addi t1, t1, 1;\
+		bne t1, t2, loop;"
+		::"r"(times):);
 }
 
 static void test_pinmux_config()
@@ -67,7 +80,7 @@ static void test_pinmux_config()
 
 #endif
 
-#define DELAY	2500000
+#define DELAY	25000000
 
 void test_gpio(int loop)
 {

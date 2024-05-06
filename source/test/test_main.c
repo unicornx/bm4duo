@@ -8,7 +8,7 @@ int testcase_main(void)
 {
 #if defined(CONFIG_TEST_GPIO)
 	printf("====> Running GPIO example ......\n");
-	test_gpio(10);
+	test_gpio(30);
 
 #elif defined(CONFIG_TEST_CLOCK)
 	printf("====> Running CLOCK example ......\n");

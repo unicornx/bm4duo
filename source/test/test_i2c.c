@@ -1,378 +1,388 @@
-#include "common.h"
-
 // 利用I2C0控制外围电路上支持I2C接口的的温度传感器芯片LM75，实时读取温度值并通过串口COM1打印在控制终端上。
 
 // DUO 上支持 I2C 功能的引脚如下，都不是默认 select，需要自己 pinmux select：
-// I2C0_SCL/I2C0_SDA -- GPIOA28/GPIOA29
-//
-// I2C1_SCL/I2C1_SDA -- GPIO19/GPIO20
-// I2C1_SCL/I2C1_SDA -- GPIO21/GPIO18
-// I2C1_SCL/I2C1_SDA -- GPIOC9/GPIOC10
-//
-// I2C3_SCL/I2C3_SDA -- GPIO23/GPIO22
+// GP0/GP1   -- I2C0_SCL/I2C0_SDA -- XGPIOA28/XGPIOA29
+// GP4/GP5   -- I2C1_SCL/I2C1_SDA -- PWR_GPIO19/PWR_GPIO20 == SD1_D2/SD1_D1
+// GP7/GP6   -- I2C3_SCL/I2C3_SDA -- PWR_GPIO22/PWR_GPIO23
+// GP9/GP8   -- I2C1_SCL/I2C1_SDA -- PWR_GPIO18/PWR_GPIO21 == SD1_D3/SD1_D0
+// GP11/GP10 -- I2C1_SCL/I2C1_SDA -- XGPIOC10/XGPIOC9      == PAD_MIPIRX0N/PAD_MIPIRX1P
 
+// Duo256 上支持 I2C 的引脚如下：
+// GP4/GP5   -- I2C1_SCL/I2C1_SDA -- PWR_GPIO19/PWR_GPIO20 == SD1_D2/SD1_D1
+// GP7/GP6   -- I2C3_SCL/I2C3_SDA -- PWR_GPIO22/PWR_GPIO23
+// GP9/GP8   -- I2C1_SCL/I2C1_SDA -- PWR_GPIO18/PWR_GPIO21 == SD1_D3/SD1_D0
+// GP11/GP10 -- I2C2_SCL/I2C2_SDA -- XGPIOC15/XGPIOC14
 
-#if 0
-void i2c_set_pinmux(uint32_t i2c_base)
+#include "common.h"
+
+/*
+ * status codes
+ */
+#define STATUS_IDLE			0x0
+#define STATUS_WRITE_IN_PROGRESS	0x1
+#define STATUS_READ_IN_PROGRESS		0x2
+
+#define I2C0                    0x0
+#define I2C1                    0x1
+#define I2C2                    0x2
+#define I2C3                    0x3
+#define I2C4                    0x4
+
+static struct i2c_regs *i2c_get_base(uint8_t i2c_id)
 {
-	if (i2c_base == I2C0_BASE) {
-		mmio_clrsetbits_32(PINMUX_BASE + 0x9C, 0x3<<20, 0x1<<20); /* IIC0_SDA */
-		mmio_clrsetbits_32(PINMUX_BASE + 0xA0, 0x3<<4, 0x1<<4); /* IIC0_SCL */
-	} else if (i2c_base == I2C1_BASE) {
-		mmio_clrsetbits_32(PINMUX_BASE + 0xA0, 0x3<<20, 0x1<<20); /* IIC1_SDA */
-		mmio_clrsetbits_32(PINMUX_BASE + 0xA4, 0x3<<4, 0x1<<4); /* IIC1_SCL */
-	} else if (i2c_base == I2C2_BASE) {
-		mmio_clrsetbits_32(PINMUX_BASE + 0xA4, 0x3<<20, 0x1<<20); /* IIC2_SDA */
-		mmio_clrsetbits_32(PINMUX_BASE + 0xA8, 0x3<<4, 0x1<<4); /* IIC2_SCL */
-	} else if (i2c_base == I2C3_BASE) {
-		mmio_clrsetbits_32(PINMUX_BASE + 0xA8, 0x3<<20, 0x1<<20); /* IIC3_SDA */
-		mmio_clrsetbits_32(PINMUX_BASE + 0xAC, 0x3<<4, 0x1<<4); /* IIC3_SCL */
-	} else if (i2c_base == I2C4_BASE) {
-		mmio_clrsetbits_32(PINMUX_BASE + 0xAC, 0x3<<20, 0x1<<20); /* IIC4_SDA */
-		mmio_clrsetbits_32(PINMUX_BASE + 0xB0, 0x3<<4, 0x1<<4); /* IIC4_SCL */
-	}
-}
-#endif
+    struct i2c_regs *i2c_base = NULL;
 
-// CLK_DIV CRG 寄存器章节，配置 clk_byp_0.clk_byp_0_31 可以选择 IIC_CLK 为 25MHz 预设时钟源或 100MHz 时钟源。
-// FIXME：clk_byp_0_31 默认为 1，Clock Bypass to xtal for IIC’ s clock clk_i2c，具体的值是 25Mhz 还是 100Mhz？
-// 我现在理解 1 表示不适用外部时钟源，所以 1 表示适用默认的预设时钟源 25MHz
+    switch (i2c_id) {
+    case I2C0:
+        i2c_base = (struct i2c_regs *)I2C0_BASE;
+        break;
+    case I2C1:
+        i2c_base = (struct i2c_regs *)I2C1_BASE;
+        break;
+    case I2C2:
+        i2c_base = (struct i2c_regs *)I2C2_BASE;
+        break;
+    case I2C3:
+        i2c_base = (struct i2c_regs *)I2C3_BASE;
+        break;
+    case I2C4:
+        i2c_base = (struct i2c_regs *)I2C4_BASE;
+        break;
+    }
 
-// 配置相关时序配置需要在模块不使能状态。 需将 IC_ENABLE 设 置 为 0, 并 查 询 IC_ENABLE_STATUS[0] 确定为 0
-// FIXME：我看这里只是设置了 IC_ENABLE，但没有严格同步查询确保生效
-
-// 参照表格 I2C clock selection and related register configuration relationship table，按 I2C 时钟选择，
-// 配置 I2C时序计数寄存器。
-// 参考配置 I2C 时钟与时序参数
-
-void i2c_set_clk_in_khz(uint32_t i2c_base, uint32_t khz)
-{
-	uint8_t hcnt, lcnt;
-
-	if (khz > 400) {
-#if 0
-		mmio_write_32(i2c_base + I2C_CON, 0x67);
-		hcnt = 0.4 * 14900 / khz;
-		lcnt = 0.6 * 14900 / khz;
-		mmio_write_32(i2c_base + I2C_HS_HCNT, hcnt);
-		mmio_write_32(i2c_base + I2C_HS_LCNT, lcnt);
-#endif
-	} else {
-		// FIXME: 有些不太理解这里的一些设置
-		// 0x65 = 01100101
-		// I2C_CON
-		// .MASTER_MODE [0] = 1, master mode
-		// .SPEED[2:1] = 2, fast mode (~400 kb/s)  // FIXME 这里为啥是 2，而且 reset 为 3 表示啥意思？按照 TRM 上非 DMA 方式下的传输说明，不是应该设置为 1 吗
-		// .IC_10BITADDR_SLAVE[3] = 0, disable 10bit slave address mode
-		// .IC_10BITADDR_MASTER[4] = 0, disable 10bit master address mode
-		// .IC_RESTART_EN[5] = 1, enable I2C master to be able generate restart
-		// .IC_SLAVE_DISABLE[6] = 1, slave is disabled
-		mmio_write_32(i2c_base + I2C_CON, 0x65);
-		hcnt = 0.4 * 20000 / khz;
-		lcnt = 0.6 * 20000 / khz;
-		//hcnt = 21;
-		//lcnt = 42;
-		mmio_write_32(i2c_base + I2C_FS_SCL_HCNT, hcnt);
-		mmio_write_32(i2c_base + I2C_FS_SCL_LCNT, lcnt);
-	}
-	// printf("hcnt = 0x%x\n", hcnt);
-	// printf("lcnt = 0x%x\n", lcnt);
+    return i2c_base;
 }
 
-// id 为 target 设备的地址
-// 整个流程可以参考 TRM 的 非 DMA 方式下的数据传输的软件流程图
-void i2c_init(uint32_t i2c_base, uint8_t id)
+static void i2c_enable(struct i2c_regs *i2c, unsigned int enable)
 {
-	//i2c_set_pinmux(i2c_base);
-	
-	// 先关闭 I2C
-	mmio_write_32(i2c_base + I2C_ENABLE, 0);
+	uint32_t ena = enable ? IC_ENABLE : 0;
+	int timeout = 100;
 
-	// 设置对端 slave 的地址，支持标准地址 (7bit) 和扩展地址 (10bit)。
-	// 这里采用标准地址
-	mmio_write_32(i2c_base + I2C_TAR, id);
+	do {
+		mmio_write_32((uintptr_t)&i2c->ic_enable, ena);
+		if ((mmio_read_32((uintptr_t)&i2c->ic_enable_status) & IC_ENABLE) == ena)
+			return;
 
-	// 选择较低速率
-	i2c_set_clk_in_khz(i2c_base, 200);
+		/*
+		 * Wait 10 times the signaling period of the highest I2C
+		 * transfer supported by the driver (for 400KHz this is
+		 * 25us) as described in the DesignWare I2C databook.
+		 */
+		udelay(25);
+	} while (timeout--);
 
-	// FIXME: 这里是 enable 了还是 disable？
-	// 猜测是 enable，对 Mask 设置 1 才是屏蔽掉对应的中断，这里设置为 0 就是不屏蔽
-	// 所有的中断，也就是 enable
-	mmio_write_32(i2c_base + I2C_INTR_MASK, 0);
-
-	// 设置 RX/TX 的 FIFO 的 Threshold Level，即上报中断的阈值
-	mmio_write_32(i2c_base + I2C_RX_TL, 1);
-	mmio_write_32(i2c_base + I2C_TX_TL, 1);
-
-	// 启动 I2C
-	mmio_write_32(i2c_base + I2C_ENABLE, 1);
+	printf("timeout in %sabling I2C adapter\n", enable ? "en" : "dis");
 }
 
-// 通过轮询中断状态查看 TX FIFO 是否已经为空，说明数据已经发送
-// FIXME， 也可以试试通过轮询查看 I2C_STATUS.ST_TFE
-void wait_until_tx_empty(uint32_t i2c_base)
+/*
+ * i2c_flush_rxfifo - Flushes the i2c RX FIFO
+ *
+ * Flushes the i2c RX FIFO
+ */
+static void i2c_flush_rxfifo(struct i2c_regs *i2c)
 {
-	uint16_t timeout = 1000;
-	uint32_t sts;
-
-	sts = mmio_read_32(i2c_base + I2C_RAW_INTR_STAS);
-	printf("--> sts = 0x%x\n", sts);
-
-	while (1) {
-		udelay(90);	// somehow delay for FPGA bus speed
-		uint32_t sts = mmio_read_32(i2c_base + I2C_RAW_INTR_STAS);
-		if (sts & IST_TX_EMPTY) {
-			printf("--> wait_until_tx_empty done!\n");
-			break;
-		}
-		if (--timeout == 0) {
-			printf("wait_until_tx_empty timeout\n");
-			break;
-		}
-	}
+	while (mmio_read_32((uintptr_t)&i2c->ic_status) & IC_STATUS_RFNE)
+		mmio_read_32((uintptr_t)&i2c->ic_cmd_data);
 }
 
-// 通过轮询状态寄存器 I2C_STATUS.ST_RFNE 查看 RX FIFO 是否有数据，如果有则说明可以读取
-// FIXME， I2C_RAW_INTR_STAS 中似乎没有符合我们类似要求的标志，
-// I2C_RAW_INTR_STAS.IST_RX_UNDER 表示当我们读取导致 FIFO 读空
-// I2C_RAW_INTR_STAS.IST_RX_OVER 表示 RX FIFO 溢出
-// I2C_RAW_INTR_STAS.IST_RX_FULL 表示 RX FIFO 中的数据大小达到我们设置的上限
-
-int wait_until_rx_not_empty(uint32_t i2c_base)
+/*
+ * i2c_wait_for_bb - Waits for bus busy
+ *
+ * Waits for bus busy
+ */
+static int i2c_wait_for_bb(struct i2c_regs *i2c)
 {
-	uint16_t timeout = 1000;
-	uint32_t sts;
+	uint16_t    timeout = 0;
 
-	sts = mmio_read_32(i2c_base + I2C_RAW_INTR_STAS);
-	printf("--> sts = 0x%x\n", sts);
-#if 0
-	while (1) {
-		uint32_t sts = mmio_read_32(i2c_base + I2C_STATUS);
-		if (sts & ST_RFNE)
-			break;
-		if (--timeout == 0) {
-			printf("wait_until_rx_not_empty timeout\n");
-			return -1;
-		}
-	}
-#endif
-	while (1) {
-		udelay(90);	// somehow delay for FPGA bus speed
-		sts = mmio_read_32(i2c_base + I2C_RAW_INTR_STAS);
-		printf("sts = 0x%x\n", sts);
-		if (sts & IST_RX_FULL) {
-			printf("--> wait_until_rx_not_empty done!\n");
-			break;
-		}
-		if (--timeout == 0) {
-			printf("wait_until_rx_not_empty timeout\n");
-			break;
-		}
+	// Master FSM is not in IDLE state OR
+	// Transmit FIFO is not empty
+	while ((mmio_read_32((uintptr_t)&i2c->ic_status) & IC_STATUS_MA) ||
+	       !(mmio_read_32((uintptr_t)&i2c->ic_status) & IC_STATUS_TFE)) {
+
+		/* Evaluate timeout */
+		udelay(5);
+		timeout++;
+		if (timeout > 200) /* exceed 1 ms */
+			return 1;
 	}
 
 	return 0;
 }
 
 /*
- * Refer to UM Page-665, Figure 8.2-6 Operations for Master/Transmitter Mode
- * Input:
- *	addr_s: address of slave device
- *	buf:	pointer to buffer holding the data to be transferred
- *	count:	size of bytes to be transferred
- * Output:
- *	N/A
- * Return:
- *	none	 
+ * i2c_setaddress - Sets the target slave address
+ * @i2c_addr:	target i2c address
+ *
+ * Sets the target slave address.
  */
-void i2c_master_tx(uint32_t i2c_base, unsigned char *buf, int count)
+static void i2c_setaddress(struct i2c_regs *i2c, uint16_t i2c_addr)
 {
-	uint32_t val;
-	while (count > 0) {
-		val = *buf; // 其他bit默认为 0
-		mmio_write_32(i2c_base + I2C_DATA_CMD, val);
+	i2c_enable(i2c, 0);
+	mmio_write_32((uintptr_t)&i2c->ic_tar, i2c_addr & 0x3ff);
+	i2c_enable(i2c, 1);
+}
 
-		// wait for tx fifo empty
-		wait_until_tx_empty(i2c_base);
-		
-		count--;
-		buf++;
+// dev 是 slave 设备的 I2C 地址
+// addr 是 slave 设备中寄存器的地址
+static int i2c_xfer_init(struct i2c_regs *i2c, uint16_t dev, uint8_t addr)
+{
+	if (i2c_wait_for_bb(i2c))
+		return 1;
+
+	i2c_setaddress(i2c, dev);
+
+	mmio_write_32((uintptr_t)&i2c->ic_cmd_data, addr | BIT_I2C_CMD_DATA_RESTART_BIT);
+
+	return 0;
+}
+
+static int i2c_xfer_finish(struct i2c_regs *i2c)
+{
+	uint16_t timeout = 0;
+	while (1) {
+		if ((mmio_read_32((uintptr_t)&i2c->ic_raw_intr_stat) & IC_STOP_DET)) {
+			mmio_read_32((uintptr_t)&i2c->ic_clr_stop_det);
+			break;
+		} else {
+			timeout++;
+			udelay(5);
+			if (timeout > I2C_STOPDET_TO * 100) {
+				printf("%s, tiemout\n", __func__);
+				break;
+			}
+		}
 	}
-	
-	// FIXME 不写 stop？
-	mmio_write_32(i2c_base + I2C_DATA_CMD, 1 << 9);
+
+	if (i2c_wait_for_bb(i2c))
+		return 1;
+
+	i2c_flush_rxfifo(i2c);
+
+	return 0;
 }
 
-
-int i2c_master_rx(uint32_t i2c_base, unsigned char *buf, int count)
+/*
+ * Read from slave memory.
+ * @i2c_id: i2c controller id
+ * @dev: slave device address
+ * @addr: slave register address to read from, 8bit width
+ * @buffer: buffer to store the data read
+ * @len: number of bytes to be read
+ */
+int i2c_read(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_t len)
 {
-	int nr = 0; /* return the number of read */
-	
-	if (!buf) return nr;
-	
-	while (count > 0) {
-		// trigger read
-		mmio_write_16(i2c_base + I2C_DATA_CMD, 0x100);
+	struct i2c_regs *i2c;
+	int ret = 0;
+	uint32_t val = 0;
+	uint16_t size;
 
-		// wait and read rx fifo
-		if (0 == wait_until_rx_not_empty(i2c_base)) {
-			*buf = mmio_read_8(i2c_base + I2C_DATA_CMD);
-			count--;
-			buf++;
-			nr++;
-		} else
-			return -1;
-	} 
-	
-	return nr;
+	i2c = i2c_get_base(i2c_id);
+
+	i2c_enable(i2c, 1);
+
+	if (i2c_xfer_init(i2c, dev, addr))
+		return 1;
+
+	size = len;
+	while (size) {
+		if (1 == size ) {
+			mmio_write_32((uintptr_t)&i2c->ic_cmd_data, BIT_I2C_CMD_DATA_READ_BIT | BIT_I2C_CMD_DATA_STOP_BIT);
+		} else {
+			mmio_write_32((uintptr_t)&i2c->ic_cmd_data, BIT_I2C_CMD_DATA_READ_BIT);
+		}
+		size--;
+	}
+
+	size = len;
+	while (size) {
+		while (1) {
+			val = mmio_read_32((uintptr_t)&i2c->ic_raw_intr_stat);
+			if (val & BIT_I2C_INT_RX_FULL) {
+				*buffer++ = (uint8_t)mmio_read_32((uintptr_t)&i2c->ic_cmd_data);
+				size--;
+				break;
+			}
+			printf("rx fifo not ready!\n");
+		}
+	}
+
+	ret = i2c_xfer_finish(i2c);
+
+	i2c_enable(i2c, 0);
+
+	return ret;
 }
 
-void b2d(unsigned char b, char *s);
-void i2c_delay(int count);
+/*
+ * i2c_write - Write to i2c memory
+ * @chip:	target i2c address
+ * @addr:	address to read from
+ * @alen:
+ * @buffer:	buffer for read data
+ * @len:	no of bytes to be read
+ *
+ * Write to i2c memory.
+ */
+/*
+ * Write to slave memory.
+ * @i2c_id: i2c controller id
+ * @dev: slave device address
+ * @addr: slave register address to read from, 8bit width
+ * @buffer: buffer to store the data to be written
+ * @len: number of bytes to be written
+ */
+int i2c_write(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_t len)
+{
+	struct i2c_regs *i2c;
+	int ret = 0;
+	i2c = i2c_get_base(i2c_id);
 
-char str[4] = {0};
+	i2c_enable(i2c, 1);
+
+	if (i2c_xfer_init(i2c, dev, addr))
+		return 1;
+
+	while (len) {
+		if (i2c->ic_status & IC_STATUS_TFNF) {
+			if (--len == 0) {
+				mmio_write_32((uintptr_t)&i2c->ic_cmd_data, *buffer | IC_STOP);
+			} else {
+				mmio_write_32((uintptr_t)&i2c->ic_cmd_data, *buffer);
+			}
+			buffer++;
+        } else
+			printf("len=%d, ic status is not TFNF\n", len);
+	}
+
+	ret = i2c_xfer_finish(i2c);
+	
+	i2c_enable(i2c, 0);
+	
+	return ret;
+}
+
+/*
+ * hal_i2c_set_bus_speed - Set the i2c speed
+ * @speed:	required i2c speed
+ *
+ * Set the i2c speed.
+ */
+static void i2c_set_bus_speed(struct i2c_regs *i2c, unsigned int speed)
+{
+	unsigned int cntl;
+	unsigned int hcnt, lcnt;
+	int i2c_spd;
+
+	if (speed > I2C_FAST_SPEED)
+		i2c_spd = IC_SPEED_MODE_MAX;
+	else if ((speed <= I2C_FAST_SPEED) && (speed > I2C_STANDARD_SPEED))
+		i2c_spd = IC_SPEED_MODE_FAST;
+	else
+		i2c_spd = IC_SPEED_MODE_STANDARD;
+
+	/* to set speed cltr must be disabled */
+	i2c_enable(i2c, 0);
+
+	cntl = (mmio_read_32((uintptr_t)&i2c->ic_con) & (~IC_CON_SPD_MSK));
+
+	switch (i2c_spd) {
+	case IC_SPEED_MODE_MAX:
+		cntl |= IC_CON_SPD_HS;
+			//hcnt = (u16)(((IC_CLK * MIN_HS100pF_SCL_HIGHTIME) / 1000) - 8);
+			/* 7 = 6+1 == MIN LEN +IC_FS_SPKLEN */
+			//lcnt = (u16)(((IC_CLK * MIN_HS100pF_SCL_LOWTIME) / 1000) - 1);
+			hcnt = 6;
+			lcnt = 8;
+
+		mmio_write_32((uintptr_t)&i2c->ic_hs_scl_hcnt, hcnt);
+		mmio_write_32((uintptr_t)&i2c->ic_hs_scl_lcnt, lcnt);
+		break;
+
+	case IC_SPEED_MODE_STANDARD:
+		cntl |= IC_CON_SPD_SS;
+
+		hcnt = (uint16_t)(((IC_CLK * MIN_SS_SCL_HIGHTIME) / 1000) - 7);
+		lcnt = (uint16_t)(((IC_CLK * MIN_SS_SCL_LOWTIME) / 1000) - 1);
+
+		mmio_write_32((uintptr_t)&i2c->ic_ss_scl_hcnt, hcnt);
+		mmio_write_32((uintptr_t)&i2c->ic_ss_scl_lcnt, lcnt);
+		break;
+
+	case IC_SPEED_MODE_FAST:
+	default:
+		cntl |= IC_CON_SPD_FS;
+		hcnt = (uint16_t)(((IC_CLK * MIN_FS_SCL_HIGHTIME) / 1000) - 7);
+		lcnt = (uint16_t)(((IC_CLK * MIN_FS_SCL_LOWTIME) / 1000) - 1);
+
+		mmio_write_32((uintptr_t)&i2c->ic_fs_scl_hcnt, hcnt);
+		mmio_write_32((uintptr_t)&i2c->ic_fs_scl_lcnt, lcnt);
+		break;
+	}
+
+	mmio_write_32((uintptr_t)&i2c->ic_con, cntl);
+
+	/* Enable back i2c now speed set */
+	i2c_enable(i2c, 1);
+}
+
+/*
+ * __hal_i2c_init - Init function
+ * @speed:	required i2c speed
+ * @slaveaddr:	slave address for the device
+ *
+ * Initialization function.
+ */
+void i2c_init(uint8_t i2c_id)
+{
+	struct i2c_regs *i2c;
+
+	i2c = i2c_get_base(i2c_id);
+
+	/* Disable i2c */
+	i2c_enable(i2c, 0);
+
+	mmio_write_32((uintptr_t)&i2c->ic_con, (IC_CON_SD | IC_CON_SPD_FS | IC_CON_MM | IC_CON_RE));
+	mmio_write_32((uintptr_t)&i2c->ic_rx_tl, IC_RX_TL);
+	mmio_write_32((uintptr_t)&i2c->ic_tx_tl, IC_TX_TL);
+	mmio_write_32((uintptr_t)&i2c->ic_intr_mask, 0x0);
+
+	i2c_set_bus_speed(i2c, I2C_SPEED);
+
+	/* Enable i2c */
+	i2c_enable(i2c, 0);
+}
+
+// 如果统一起见，可以都使用 GP4/GP5 上对应的 I2C1
+// 但我的 Duo 上的 GP4/GP5 貌似坏了，包括 PWM5 也工作不太正常
+// 所以
+// 在 Duo 上我选择了 I2C0
+// 在 Duo256 上我还是选择 I2C1
+#if   defined(CONFIG_BOARD_DUO)
+#define TEST_PINMUX_I2C PINMUX_I2C0
+#define TEST_I2C	I2C0
+#elif defined(CONFIG_BOARD_DUO256)
+#define TEST_PINMUX_I2C PINMUX_I2C1
+#define TEST_I2C	I2C1
+#endif
 
 void test_i2c()
 {
-	uint8_t buf[2];
-	uint32_t val;
+	uint8_t data[2] = {0xff, 0xff};
+	uint16_t temp;
+	float temp_calculated;
 
-	pinmux_config(PINMUX_I2C0);
+	pinmux_config(TEST_PINMUX_I2C);
 
-	i2c_init(I2C0_BASE, 0x48);
+	i2c_init(TEST_I2C);
 
+	for(;;) {
+		i2c_read(TEST_I2C, 0x48, 0x00, &data[0], 2);
+		printf("---> read data 0x%x, 0x%x\n", data[0], data[1]);
 
-	val = mmio_read_32(I2C0_BASE + I2C_RAW_INTR_STAS);
-	printf("--> interrupt status = 0x%x\n", val);
+		temp = (data[0] << 3) | (data[1] >> 5);
+		temp_calculated = temp * 0.125;
+		printf("LM75: temperature is %2.2fc\n", temp_calculated);
 
-	while (1) {
-		/* 
-		 * set LM75 pointer register to point to 
-		 * temperature read-only register
-		 */
-		buf[0] = 0;
-		i2c_master_tx(I2C0_BASE, buf, 1);
-		
-		/* read temperature value and print to COM1 */
-		if (2 != i2c_master_rx(I2C0_BASE, buf, 2)) {
-			printf("read temp failed!\n");
-			break;
-		}
-
-		printf("temprature = ");
-		if (buf[0] & 0x80) {
-			printf("-");
-		} else {
-			printf("+");
-		}
-		b2d(buf[0] & 0x07f, str);
-		printf("%s", str);
-		if (buf[1] & 0x80) {
-			printf(".5 C\r");
-		} else {
-			printf(".0 C\r");
-		}
-		
-		i2c_delay(0x200000);
+		mdelay(1000);
 	}
-}
-
-
-typedef struct {
-	unsigned char	num;
-	char	*str;
-} digit_str;
-
-digit_str array_1[10] = {
-	{0,	"0"},
-	{1,	"1"},
-	{2,	"2"},
-	{3,	"3"},
-	{4,	"4"},
-	{5,	"5"},
-	{6,	"6"},
-	{7,	"7"},
-	{8,	"8"},
-	{9,	"9"}
-};
-
-digit_str array_2[9] = {
-	{10,	"10"},
-	{20,	"20"},
-	{30,	"30"},
-	{40,	"40"},
-	{50,	"50"},
-	{60,	"60"},
-	{70,	"70"},
-	{80,	"80"},
-	{90,	"90"}
-};
-
-digit_str array_3[2] = {
-	{100,	"100"},
-	{200,	"200"}
-};
-
-void b2d(unsigned char b, char *s)
-{
-	char *p, *p1, *p2;
-	int i;
-	
-	p = s;
-	
-	for (i = 1; i >= 0; i--) {
-		if (b >= array_3[i].num) {
-			p1 = p;
-			p2 = array_3[i].str;
-			while (*p2) {
-				*p1 = *p2;
-				p1++;
-				p2++;
-			}
-			*p1 = '\0';
-			
-			p++;
-			b -= array_3[i].num;
-			
-			break;
-		}
-	}
-	
-	for (i = 8; i >= 0; i--) {
-		if (b >= array_2[i].num) {
-			p1 = p;
-			p2 = array_2[i].str;
-			while (*p2) {
-				*p1 = *p2;
-				p1++;
-				p2++;
-			}
-			*p1 = '\0';
-			
-			p++;
-			b -= array_2[i].num;
-			
-			break;
-		}
-	}
-	
-	for (i = 9; i >= 0; i--) {
-		if (b >= array_1[i].num) {
-			p1 = p;
-			p2 = array_1[i].str;
-			while (*p2) {
-				*p1 = *p2;
-				p1++;
-				p2++;
-			}
-			*p1 = '\0';
-			
-			break;
-		}
-	}
-}
-
-
-void i2c_delay(int count)
-{
-	while (count-- > 0);
 }

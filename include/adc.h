@@ -7,5 +7,7 @@
 #define SARADC_CH1	0x014
 #define SARADC_CH2	0x018
 #define SARADC_CH3	0x01c
+#define SARADC_TEST	0x030
+#define SARADC_TRIM	0x034
 
 #endif // __ADC_H__

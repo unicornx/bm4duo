@@ -50,6 +50,11 @@
 #define UART4_BASE          0x041C0000
 #define PWR_UART_BASE       0x05022000
 
+#define SPI0_BASE		0x04180000
+#define SPI1_BASE		0x04190000
+#define SPI2_BASE		0x041A0000
+#define SPI3_BASE		0x041B0000
+
 #define GPIO0_BASE          0x03020000 // XGPIOA
 #define GPIO1_BASE          0x03021000 // XGPIOB
 #define GPIO2_BASE          0x03022000 // XGPIOC

@@ -22,6 +22,7 @@
 #include "pinmux.h"
 #include "adc.h"
 #include "timer.h"
+#include "spi.h"
 
 
 extern void test_gpio(int loop);
@@ -44,6 +45,8 @@ extern void test_adc();
 extern void test_i2c();
 
 extern void test_timer();
+
+extern void test_spi();
 
 #endif // __COMMON_H__
 

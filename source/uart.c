@@ -96,8 +96,12 @@ void uart_init(int port)
 	 * - RBR_THR_DLL works as DLL and it contains Lower 8-bits of a 16-bit divisor
 	 * - IER_DLH wors as DLH and it contains Upper 8-bits of a 16-bit divisor
 	 * restore LCR[7] to zero after setting of divisor is done
+	 *
+	 * 严格按照 TRM 公式计算 divisor = UART_CLOCKRATE / (16 * UART_BAUDRATE)
+	 * 得到 ~13.56，但是除法直接舍弃小数，导致得到 13，精度损失较大，用 14
+	 * 误差较小
 	 */
-	int divisor = UART_CLOCKRATE / (16 * UART_BAUDRATE);
+	int divisor = 14;
 	uart->lcr = uart->lcr | UART_LCR_DLAB;
 	uart->dll = divisor & 0xff;
 	uart->dlh = (divisor >> 8) & 0xff;

@@ -148,22 +148,17 @@ int request_irq(unsigned int irqn, irq_handler_t handler, unsigned long flags,
 void do_irq(void)
 {
 	int irqn;
-	do{
+	do {
 		irqn = sirq_chip.irq_ack();
-		if(g_irq_action[irqn].handler && irqn)
-		{
-//			printf("do_irq irqn=%d\n",irqn);
+		if (g_irq_action[irqn].handler && irqn)
 			g_irq_action[irqn].handler(g_irq_action[irqn].irqn, g_irq_action[irqn].priv);
-		}
-		else if(irqn)
+		else if (irqn)
 			printf("g_irq_action[%i] NULL",irqn);
 		else //plic_claim =0
 			break;
 		// clear plic pending
 		sirq_chip.irq_eoi(irqn);
-	}while(1);
-	// clear external interrupt pending
-	clear_csr(mip, MIP_MEIE);
+	} while (1);
 }
 
 void disable_irq(unsigned int irqn)

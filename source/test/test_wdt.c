@@ -9,12 +9,13 @@ static int wdt_isr(int intrid, void *priv)
 	printf("---> wdt!\n");
 
 	// 在两阶段工作模式下，当第一阶段的中断到来时，我们 clear watchdog 中断
-	// 后不会启动第二阶段的技术，但是会重启第一阶段的计数，所以第二次第一阶
+	// 后不会启动第二阶段的计数，但是会重启第一阶段的计数，所以第二次第一阶
 	// 段计数递减到 0 后中断依然会来。只要我们及时 clear 中断，则不会触发第
 	// 二阶段的计数，也就不会发出复位信号。
-	//mmio_read_32(WATCHDOG1_BASE + WDT_EOI);
+	// mmio_read_32(WATCHDOG1_BASE + WDT_EOI);
 
 	// 重启第一阶段的计数器，也能达到清中断的效果
+	// 设置 0x76 确保安全地重启 WDT 计数器
 	// A restart also clears the WDT interrupt.
 	mmio_write_32(WATCHDOG1_BASE + WDT_CRR, 0x76);
 
@@ -73,10 +74,6 @@ void wdt_init()
 	// 也就是第一次超时 5 秒，然后如果不清中断，再过 10秒系统重启
 	mmio_write_32(WATCHDOG1_BASE + WDT_TORR, 10 << 4 | 11);
   
-	//  WDT_CRR/Counter restart register
-	// 设置 0x76 确保安全地重启 WDT 计数器
-	mmio_write_32(WATCHDOG1_BASE + WDT_CRR, 0x76);
-  
 	// WDT_TOC/Time Out Count
 	mmio_write_32(WATCHDOG1_BASE + WDT_TOC, 64000);
   
@@ -88,7 +85,13 @@ void wdt_init()
 	// - [0] WDT enable: 1 / WDT is enabled， WDT 的启动控制位，如果启动了，只有发生 reset 后该位才会恢复为 0，此间不接受其他的手动设置为 0
 	// WDT_CR.TOR_MODE  [6]: 1 << 6, 1 the mode of timeout period
 	// WDT_CR.ITOR_MODE [7]: 1 << 7, the mode of timeout period for initialization
-	mmio_write_32(WATCHDOG1_BASE + WDT_CR, 0x13 | 0x1 << 7 | 0x1 << 6);
+	//mmio_write_32(WATCHDOG1_BASE + WDT_CR, 0x13 | 0x1 << 7 | 0x1 << 6);
+	mmio_write_32(WATCHDOG1_BASE + WDT_CR,
+			WDT_CR_ENABLE |
+			WDT_CR_RESPMODE_2PHASE |
+			WDT_CR_RESET_PULSE_LEN_32 |
+			WDT_CR_TOR_MODE_1 |
+			WDT_CR_ITOR_MODE_1);
 }
 
 void test_wdt()
@@ -96,4 +99,9 @@ void test_wdt()
 	wdt_init();
 	
 	request_irq(WDT1_INTR, wdt_isr,0,"WDT INT",0);
+
+	while (1) {
+		mdelay(5000);
+		printf("---> 5s delay\n");
+	}
 }

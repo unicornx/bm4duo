@@ -26,23 +26,24 @@
 // 也就是说如果是用户自定义模式，两次定时之间我们可以修改 TimerNLoadCount 达到
 // 改变 timeout
 
-// 本例子演示，用户自定义计数模式下，
+// 本例子演示，
+// 采用用户自定义计数模式。
 // 首先设置 TimerNLoadCount 为 1s，第一次 1s 到期后设置 TimerNLoadCount 为 2s，
 // 第二次 2s 到期后设置 TimerNLoadCount 为 3s。
 // 依次类推，5 次到期后停止定时器结束演示。
 
 typedef int (*timer_callback_t)(void *);
-struct hal_timer {
+struct timer {
 	uint8_t timer_id;
 	struct timer_reg *root_regs;
 	struct timerN_regs *timern_regs;
 	int irq;
 };
 
-struct hal_timer g_timer[MAX_TIMER_ID] = {0};
+struct timer g_timer[MAX_TIMER_ID] = {0};
 
 // 清中断
-static inline void hal_timer_eoi(struct hal_timer *timer)
+static inline void timer_eoi(struct timer *timer)
 {
 	struct timerN_regs *timern_regs = timer->timern_regs;
 	mmio_read_32((uintptr_t)&timern_regs->TimerNEOI);
@@ -51,7 +52,7 @@ static inline void hal_timer_eoi(struct hal_timer *timer)
 // 设置 TimerNControlReg 的 bit[0] 为 1，enable TimerN
 #define MODE_FREERUNNING	0
 #define MODE_USERDEFINED	1
-static inline void hal_timer_setmode(struct hal_timer *timer, uint32_t mode)
+static inline void timer_setmode(struct timer *timer, uint32_t mode)
 {
 	struct timerN_regs *timern_regs = timer->timern_regs;
 	uint32_t val;
@@ -64,19 +65,22 @@ static inline void hal_timer_setmode(struct hal_timer *timer, uint32_t mode)
 	mmio_write_32((uintptr_t)&timern_regs->TimerNControlReg, val);
 }
 
-// 设置 TimerNControlReg 的 bit[1] 为 1，enable TimerN
-static inline void hal_timer_enable(struct hal_timer *timer)
+// @enable: 1: enable, 0, disable
+static inline void timer_enable(struct timer *timer, int enable)
 {
 	struct timerN_regs *timern_regs = timer->timern_regs;
 	uint32_t val;
 	val = mmio_read_32((uintptr_t)&timern_regs->TimerNControlReg);
-	val |= 1;
+	if (enable)
+		val |= 1;
+	else
+		val &= ~1;
 	mmio_write_32((uintptr_t)&timern_regs->TimerNControlReg, val);
 }
 
 #define NS_PER_TICK		40
 // top: Time Out Period, 单位 us
-static inline void hal_timer_set_top(struct hal_timer *timer, uint64_t top)
+static inline void timer_set_top(struct timer *timer, uint64_t top)
 {
 	// FIXME：严格来说，我们需要对传入的 top 值控制一下范围，这里简化了没有判断
 
@@ -84,64 +88,58 @@ static inline void hal_timer_set_top(struct hal_timer *timer, uint64_t top)
 
 	uint64_t timeout_ns = top * 1000;
 	uint32_t ticks = timeout_ns / NS_PER_TICK;
-	printf("timeout_ns = %lu, tick = %u\n", timeout_ns, ticks);
+	printf("      prepare next timeout = %lu(ns), tick = %u\n", timeout_ns, ticks);
 
 	mmio_write_32((uintptr_t)&timern_regs->TimerNLoadCount, ticks);
 }
 
 // 读取 timerN 的中断状态
 // bit[0]: 1 表示中断发生，默认为 0
-static inline uint32_t hal_timer_get_intstatus(struct hal_timer *timer)
+static inline uint32_t timer_get_intstatus(struct timer *timer)
 {
 	return mmio_read_32((uintptr_t)&timer->timern_regs->TimerNIntStatus);
 }
 
-// 恢复 reset 值
-// bit[0] = 0;  disable the timerN
-// bit[1] = 0;  free-running mode, 默认自由运行模式
-// bit[2] = 0;  not masked
-static inline void hal_timer_disable(struct hal_timer *timer)
-{
-	struct timerN_regs *timern_regs = timer->timern_regs;
-	mmio_write_32((uintptr_t)&timern_regs->TimerNControlReg, 0);
-}
-
 #define SECOND (1000 * 1000 * 1000)
 int g_count;
-int g_timeout;
+u32 g_time_old;
+u32 g_time_new;
+u32 g_time_elapsed;
 
-static int hal_timer_irq_handler(int irq, void *arg)
+static int timer_irq_handler(int irq, void *arg)
 {
-	struct hal_timer *timer = arg;
+	struct timer *timer = arg;
 
-	if (!(hal_timer_get_intstatus(timer) & 0x1)){
+	if (!(timer_get_intstatus(timer) & 0x1)) {
 		//no interrupt generate
 		return 0;
 	}
 
 	// clear interrupt first
-	hal_timer_eoi(timer);
+	timer_eoi(timer);
 
-	u32 tick_ms = clint_timer_meter_get_ms();
-
-	printf("----> IRQ: timer timeout, meter value=%d\n", tick_ms);
-
-	g_count--;
-	g_timeout++;
-	if (g_count)
-		hal_timer_set_top(timer, g_timeout * 1000 * 1000);
-	else
-		hal_timer_disable(timer);
+	g_time_new = clint_timer_meter_get_ms();
+	g_time_elapsed = g_time_new - g_time_old;
+	g_time_old = g_time_new;
+	printf("----> IRQ: %dth timeout, elapsed time is %d(ms)\n", g_count, g_time_elapsed);
+	
+	if (g_count < 5) {
+		g_count++;
+		timer_set_top(timer, (g_count + 1) * 1000 * 1000);
+	} else {
+		g_count = 0;
+		timer_enable(timer, 0);
+	}
 
 	return 0;
 }
 
-struct hal_timer * hal_timer_init(uint8_t timer_id)
+struct timer * timer_init(uint8_t timer_id)
 {
-	struct hal_timer *timer;
+	struct timer *timer;
 
-	printf("enter hal_timer_init\n");
-	if(timer_id >= MAX_TIMER_ID){
+	//printf("enter timer_init\n");
+	if (timer_id >= MAX_TIMER_ID) {
 		printf("timer_id error\n");
 		return NULL;
 	}
@@ -156,46 +154,47 @@ struct hal_timer * hal_timer_init(uint8_t timer_id)
 	timer->root_regs = (struct timer_reg *)REG_TIMER_BASE;
 	timer->timern_regs = &timer->root_regs->timern_regs[timer_id];
 
-	hal_timer_disable(timer);
+	timer_enable(timer, 0);
 
-	hal_timer_setmode(timer, MODE_USERDEFINED);
+	timer_setmode(timer, MODE_USERDEFINED);
 
 	// 注册定时器中断，并传入 timer 作为 arg
-	request_irq(TIMER_IRQ(timer_id), hal_timer_irq_handler, 0, "timer_irq", timer);
+	request_irq(TIMER_IRQ(timer_id), timer_irq_handler, 0, "timer_irq", timer);
 
 	return timer;
 }
 
 void test_timer()
 {
-	struct hal_timer *timer = NULL;
+	struct timer *timer = NULL;
 
+	// 利用 clint 提供的定时器作为标准衡量我们的 timer 是否准确
+	// 具体见 timer_irq_handler 中 clint_timer_meter_get_ms 的用法。
 	clint_timer_meter_start();
 
-	timer = hal_timer_init(TIMER_ID0);
+	timer = timer_init(TIMER_ID0);
 	if (!timer) {
 		printf("timer_init failed\n");
 		return;
 	}
 
-	g_count = 5;
-	g_timeout = 1;
-
-	// 设置初始 timeout period
-	hal_timer_set_top(timer, g_timeout * 1000 * 1000);
+	g_count = 1;
 	
-	// 启动定时器
-	hal_timer_enable(timer);
+	// 设置第一次 timeout period
+	timer_set_top(timer, g_count * 1000 * 1000);
+	
+	// 启动定时器, 开始第一次计时
+	timer_enable(timer, 1);
+	g_time_old = clint_timer_meter_get_ms();
 
-	// 这里要提前设置下一次初始 timeout period
-	// 如果在 irq handler 中再设置太晚了，因为
-	// timeout 时硬件已经自动将 TimerNLoadCount 中的值载入
-	// 到 timer 中了，所以如果我们希望第二次的 timeout 
-	// 是 2s，那么这里就要提前设置好
-	hal_timer_set_top(timer, ++g_timeout * 1000 * 1000);
+	// 这里要提前设置下一次 (第二次) 的 timeout period
+	// 如果在 irq handler 中再设置太晚了，
+	// 因为在用户自定义计数模式下，当 timeout，也就是计数值减到 0 时，
+	// Timer 会自动从 TimerNLoadCount 中再次载入下一次的 timeout 值
+	// 所以如果我们希望第二次的 timeout 是 2s，那么这里就要提前设置好，否则
+	// 第二次的 timeout period 还是 1s
+	timer_set_top(timer, (g_count + 1) * 1000 * 1000);
 	
 	// 等待定时器结束
 	while (g_count);
-
-	printf("----> exiting while!\n");
 }

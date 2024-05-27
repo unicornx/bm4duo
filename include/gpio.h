@@ -14,4 +14,10 @@
 #define GPIO_EXT_PORTA		0x050
 #define GPIO_LS_SYNC		0x060
 
+/* GPIO alias */
+#define GPIOA_BASE          GPIO0_BASE
+#define GPIOB_BASE          GPIO1_BASE
+#define GPIOC_BASE          GPIO2_BASE
+#define GPIOD_BASE          GPIO3_BASE
+
 #endif // __GPIO_H__

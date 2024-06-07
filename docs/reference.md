@@ -32,7 +32,7 @@ Duo 256 的硬件资料：<https://github.com/milkv-duo/duo-files/tree/main/duo-
 - 【DUO256-PINOUT】[duo 256M 开发板引脚定义图][duo256-gpio-pinout]
 - 【DUO256-SCHEMA】[duo 256M 开发板电路原理图 v1][duo256-schema-v1]
 - 【SG2002-TRM】[SG2002 技术参考手册][sg2002-trm]: Duo 256 使用的 SoC 是 SG2002。需要注意的是，这里的 SoC datasheet 不确保是最新的，官方的 SOC TRM 可以访问 <https://github.com/sophgo/sophgo-doc/releases>。这里是官方定期发布 pdf 形式的地方。我们可以下载下载最新版本的中文版本技术参考手册：`sg2002_trm_cn.pdf`。如果你喜欢尝试最新的 TRM，也可以根据发布的源码自行构建，具体参考 <https://github.com/sophgo/sophgo-doc/blob/main/SG200X/TRM/doc/design.md> 中的 “编译方法” 章节的介绍。
-
+- 【SG2002-PIN】[SG2002 引脚定义表][sg2002-pin]
 
 [duo-schema-v1.1]:https://github.com/milkv-duo/duo-files/blob/main/duo/hardware/duo-schematic-v1.1.pdf
 [duo-schema-v1.1]:https://github.com/milkv-duo/duo-files/blob/main/duo/hardware/duo-schematic-v1.2.pdf
@@ -44,3 +44,4 @@ Duo 256 的硬件资料：<https://github.com/milkv-duo/duo-files/tree/main/duo-
 [sg2002-trm]:https://github.com/milkv-duo/duo-files/tree/main/duo-256M/datasheet
 [duo256-gpio-pinout]:https://milkv.io/docs/duo/getting-started/duo256m#gpio-pinout
 [duo-gpio-pinout]:https://milkv.io/docs/duo/getting-started/duo#gpio-pinout
+[sg2002-pin]:https://github.com/sophgo/sophgo-hardware/blob/master/SG200X/04_SG2002/04_SG2002_PINOUT.xlsx

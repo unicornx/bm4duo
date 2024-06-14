@@ -31,10 +31,10 @@ void wdt_init()
 	int32_t val;
 
 	// 系统控制器 sys_ctrl_reg.reg_sw_root_reset_en 的 bit[0] 用于控制 watchdog
-	// 超时后是否触发系统软复位
+	// 超时后是否触发系统复位
 	// 由于 fsbl（裸机程序执行前执行的一小段初始化代码）目前默认设置了
 	// RTC_CTRL0 的 bit[6] 即 hw_wdg_rst_en ，这会导致 watchdog 超时触发 RTC
-	// 复位，进而导致系统硬复位。所以默认不设置 sys_ctrl_reg.reg_sw_root_reset_en
+	// 复位，进而导致系统复位。所以默认不设置 sys_ctrl_reg.reg_sw_root_reset_en
 	// 的 bit[0], watchdog 超时后系统依然会复位。
 	// mmio_write_32(TOP_BASE + TOP_SYS_CTRL_REG, 0x2);
 	val = mmio_read_32(TOP_BASE + TOP_SYS_CTRL_REG);

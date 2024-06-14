@@ -30,11 +30,13 @@ void wdt_init()
 
 	int32_t val;
 
-	// 系统控制器 sys_ctrl_req
-	// 但是看 TRM，[1:0] 两位是 reserved，设置 0x2 感觉也没有什么作用啊？
-	// 看 testcase_rtc_wdt，会设置 0x4，也就是 sys_ctrl_reg.reg_sw_root_reset_en 的 bit0
-	//mmio_write_32(TOP_BASE + TOP_SYS_CTRL_REG, 0x2);
-	// 我自己实验的效果看，似乎什么也不设置，默认初始值为 0 也能工作，感觉这个似乎不起作用？FIXME	
+	// 系统控制器 sys_ctrl_reg.reg_sw_root_reset_en 的 bit[0] 用于控制 watchdog
+	// 超时后是否触发系统软复位
+	// 由于 fsbl（裸机程序执行前执行的一小段初始化代码）目前默认设置了
+	// RTC_CTRL0 的 bit[6] 即 hw_wdg_rst_en ，这会导致 watchdog 超时触发 RTC
+	// 复位，进而导致系统硬复位。所以默认不设置 sys_ctrl_reg.reg_sw_root_reset_en
+	// 的 bit[0], watchdog 超时后系统依然会复位。
+	// mmio_write_32(TOP_BASE + TOP_SYS_CTRL_REG, 0x2);
 	val = mmio_read_32(TOP_BASE + TOP_SYS_CTRL_REG);
 	printf("TOP_SYS_CTRL_REG is 0x%x\n", val);
   
@@ -44,8 +46,8 @@ void wdt_init()
 	// reg_wdt_clk_sel [10:8]:   0: xtal clock; 1: 32k clock
 	val = mmio_read_32(TOP_BASE + TOP_TOP_WDT_CTRL);
 	printf("TOP_TOP_WDT_CTRL is 0x%x\n", val);
-	//mmio_write_32(TOP_BASE + TOP_TOP_WDT_CTRL, 0x77);
-	// 自己实验效果，默认读出来是 7，也就是 enable wdt0~wdt2 to reset system
+	// mmio_write_32(TOP_BASE + TOP_TOP_WDT_CTRL, 0x77);
+	// 自己实验效果，裸机阶段默认读出来是 0x7，也就是已经 enable wdt0~wdt2 to reset system
 
 	val = mmio_read_32(WATCHDOG1_BASE + WDT_CR);
 	printf("WDT_CR is 0x%x\n", val);

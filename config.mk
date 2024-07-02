@@ -56,7 +56,9 @@ C_SRC += \
 A_SRC +=
 
 ifeq ($(DEBUG), 1)
+ASFLAGS += -g
 CFLAGS += -g
+CXXFLAGS += -g
 DEFS += -DCONFIG_ENABLE_DEBUG
 endif
 

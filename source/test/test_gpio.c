@@ -29,7 +29,7 @@ static inline void delay(unsigned int times)
 		::"r"(times):);
 }
 
-static void test_pinmux_config()
+void led_pinmux_config()
 {
 #if defined(CONFIG_BOARD_DUO256)
 	// 对于 Duo256：
@@ -82,34 +82,53 @@ static void test_pinmux_config()
 
 #define DELAY	25000000
 
-void test_gpio(int loop)
+void led_pinctrl_config()
 {
-	uint32_t val = 0;
+	uint32_t val;
 
-	// 配置管脚复用，选择 GPIO 功能
-	test_pinmux_config();
-
-	// 配置 GPIO，设置为输出
 	// 参考 TRM 的 GPIO 章节可知控制 GPIO 数据输入还是输出的寄存器是 GPIO_SWPORTA_DDR
 	// 对应位设置为 1 表示输出
 	val = mmio_read_32(GPIO_BASE + GPIO_SWPORTA_DDR);
     	val |= 1 << GPIO_CHANNEL;
 	mmio_write_32(GPIO_BASE + GPIO_SWPORTA_DDR, val);
+}
+
+void led_on()
+{
+	uint32_t val;
+
+	// 设置 GPIO 输出高电平， led 亮
+	val = mmio_read_32(GPIO_BASE + GPIO_SWPORTA_DR);
+	val |= 1 << GPIO_CHANNEL;
+	mmio_write_32(GPIO_BASE + GPIO_SWPORTA_DR, val);
+}
+
+static void led_off()
+{
+	uint32_t val;
+
+	// 设置 GPIO 输出低电平， led 灭
+	val = mmio_read_32(GPIO_BASE + GPIO_SWPORTA_DR);
+	val &= ~(1 << GPIO_CHANNEL);
+	mmio_write_32(GPIO_BASE + GPIO_SWPORTA_DR, val);
+}
+
+void test_gpio(int loop)
+{
+	// 配置管脚复用，选择 GPIO 功能
+	led_pinmux_config();
+
+	// 配置 GPIO，设置为输出
+	led_pinctrl_config();
 
 	// 循环点亮和熄灭 led，中间通过简单的空指令（nop）循环实现延时。
 	while (loop) {
-		// 设置 GPIO 输出高电平， led 亮
-		val = mmio_read_32(GPIO_BASE + GPIO_SWPORTA_DR);
-    		val |= 1 << GPIO_CHANNEL;
-		mmio_write_32(GPIO_BASE + GPIO_SWPORTA_DR, val);
+		led_on();
 
 		// 延迟
 	       	delay(DELAY);
 
-		// 设置 GPIO 输出低电平， led 灭
-		val = mmio_read_32(GPIO_BASE + GPIO_SWPORTA_DR);
-		val &= ~(1 << GPIO_CHANNEL);
-		mmio_write_32(GPIO_BASE + GPIO_SWPORTA_DR, val);
+		led_off();
 
 		// 延迟
 	       	delay(DELAY);

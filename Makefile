@@ -1,6 +1,8 @@
 ROOT := $(shell pwd)
 TOOL_PATH :=  /home/u/ws/duo/sophpi/host-tools/gcc/riscv64-elf-x86_64/bin
 
+# set this to 1 for debug version
+# default debug is disabled
 DEBUG := 0
 
 # duo/duo256/duoS/...
@@ -40,8 +42,6 @@ MAP	:= $(OUTPUT_PATH)/$(OUTPUT_NAME).map
 ELF	:= $(OUTPUT_PATH)/$(OUTPUT_NAME).elf
 BIN	:= $(OUTPUT_PATH)/$(OUTPUT_NAME).bin
 ASM	:= $(OUTPUT_PATH)/$(OUTPUT_NAME).asm
-
-CFLAGS += -g
 
 # default definition is for duo
 MONITOR_RUNADDR := 0x0000000080000000

@@ -1,18 +1,30 @@
 #include "trace.h"
 
-extern int testcase_main();
-
 int main(void)
 {
-	int r;
+#if defined(CONFIG_TEST_DBG)
+	extern void led_pinmux_config(void);
+	extern void led_pinctrl_config(void);
+	extern void led_on(void);
+
+	printf("====> In DEBUG mode ......\n");
+	// 将板子上的 LED 灯常亮，说明进入调试模式
+	led_pinmux_config();
+	led_pinctrl_config();
+	led_on();
+
+#else
+	extern int testcase_main();
+
 	printf("====> test start\n");
 
-	r = testcase_main();
+	testcase_main();
 
 	printf("====> test done!\n");
-	
+#endif
+
 	// NOTICE!!! don't remove this line
 	while(1);
 
-	return r;
+	return 0;
 }

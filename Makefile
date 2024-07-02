@@ -1,5 +1,5 @@
 ROOT := $(shell pwd)
-TOOL_PATH :=  /home/u/ws/duo/sophpi/host-tools/gcc/riscv64-elf-x86_64/bin
+TOOL_PATH :=  /opt/bm4duo-toolchain
 
 # set this to 1 for debug version
 # default debug is disabled

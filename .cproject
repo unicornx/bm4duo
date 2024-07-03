@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?fileVersion 4.0.0?><cproject storage_type_id="org.eclipse.cdt.core.XmlProjectDescriptionStorage">
+	<storageModule moduleId="org.eclipse.cdt.core.settings">
+		<cconfiguration id="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64.1915707266">
+			<storageModule buildSystemId="org.eclipse.cdt.managedbuilder.core.configurationDataProvider" id="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64.1915707266" moduleId="org.eclipse.cdt.core.settings" name="Default">
+				<externalSettings/>
+				<extensions>
+					<extension id="com.csky.cds.debug.core.RISCV64_ELF" point="org.eclipse.cdt.core.BinaryParser"/>
+					<extension id="org.eclipse.cdt.core.GASErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GmakeErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GLDErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.CWDLocator" point="org.eclipse.cdt.core.ErrorParser"/>
+					<extension id="org.eclipse.cdt.core.GCCErrorParser" point="org.eclipse.cdt.core.ErrorParser"/>
+				</extensions>
+			</storageModule>
+			<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+				<configuration artifactName="${ProjName}" buildProperties="" id="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64.1915707266" name="Default" parent="org.eclipse.cdt.build.core.emptycfg">
+					<folderInfo id="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64.1915707266.1441023541" name="/" resourcePath="">
+						<toolChain id="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64.1810140932" name="RISCV64 Elf ToolChain" superClass="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64">
+							<targetPlatform archList="all" binaryParser="com.csky.cds.debug.core.RISCV64_ELF" id="cds.managedbuild.target.csky.platform.ckcoregcc.base.archiver.riscv64.1409347173" name="Debug Platform" osList="win32,linux,uclinux" superClass="cds.managedbuild.target.csky.platform.ckcoregcc.base.archiver.riscv64"/>
+							<builder id="cds.managedbuild.target.ckcoregcc.builder.base.archiver.riscv64.1333801667" managedBuildOn="false" name="Gnu Make Builder.Default" superClass="cds.managedbuild.target.ckcoregcc.builder.base.archiver.riscv64"/>
+							<tool id="cds.managedbuild.tool.ckcoregcc.default.base.elf.archiver.riscv64.1481682241" name="All Tools Settings" superClass="cds.managedbuild.tool.ckcoregcc.default.base.elf.archiver.riscv64"/>
+							<tool id="cds.managedbuild.tool.ckcoregcc.assembler.base.elf.archiver.riscv64.2007739223" name="CSky Elf Assembler" superClass="cds.managedbuild.tool.ckcoregcc.assembler.base.elf.archiver.riscv64"/>
+							<tool id="cds.managedbuild.tool.ckcoregcc.cpp.compiler.base.elf.archiver.riscv64.1134180018" name="CSky Elf C++ Compiler" superClass="cds.managedbuild.tool.ckcoregcc.cpp.compiler.base.elf.archiver.riscv64"/>
+							<tool id="cds.managedbuild.tool.ckcoregcc.c.compiler.base.elf.archiver.riscv64.1279831182" name="CSky Elf C Compiler" superClass="cds.managedbuild.tool.ckcoregcc.c.compiler.base.elf.archiver.riscv64"/>
+							<tool id="cds.managedbuild.tool.ckcoregcc.binary.base.elf.archiver.riscv64.575934879" name="CSky Elf Binary Linker" superClass="cds.managedbuild.tool.ckcoregcc.binary.base.elf.archiver.riscv64"/>
+							<tool id="cds.managedbuild.tool.ckcoregcc.archiver.base.elf.riscv64.1504411406" name="CSky Elf Archiver" superClass="cds.managedbuild.tool.ckcoregcc.archiver.base.elf.riscv64"/>
+						</toolChain>
+					</folderInfo>
+				</configuration>
+			</storageModule>
+			<storageModule moduleId="org.eclipse.cdt.core.externalSettings"/>
+		</cconfiguration>
+	</storageModule>
+	<storageModule moduleId="scannerConfiguration">
+		<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
+	</storageModule>
+	<storageModule moduleId="cdtBuildSystem" version="4.0.0">
+		<project id="bm4duo.null.1470368381" name="bm4duo"/>
+	</storageModule>
+	<storageModule moduleId="org.eclipse.cdt.core.LanguageSettingsProviders"/>
+</cproject>

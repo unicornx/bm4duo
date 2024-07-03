@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="com.csky.cds.launch.CSKYApplicationType">
+<stringAttribute key=".gdb_continue" value=""/>
+<stringAttribute key=".gdb_hwreset" value=""/>
+<stringAttribute key=".gdb_preload" value=""/>
+<stringAttribute key=".gdb_stop" value=""/>
+<stringAttribute key=".gdb_swreset" value=""/>
+<stringAttribute key="BUseLocalTool" value="true"/>
+<stringAttribute key="ConnectMode" value="Normal"/>
+<booleanAttribute key="DebugInFlash" value="false"/>
+<stringAttribute key="DriverFilePath" value=""/>
+<stringAttribute key="DriverTemplate" value=""/>
+<booleanAttribute key="Execute preload script" value="false"/>
+<stringAttribute key="ExternalArgs" value=""/>
+<stringAttribute key="ExternalCommand" value=""/>
+<booleanAttribute key="FirstReset" value="false"/>
+<stringAttribute key="FirstReset mode" value="Hard Reset"/>
+<stringAttribute key="RTOSType" value="None"/>
+<stringAttribute key="SReset Command" value="0"/>
+<booleanAttribute key="SecondReset" value="false"/>
+<stringAttribute key="SecondReset mode" value="Soft Reset"/>
+<booleanAttribute key="chip_erase" value="false"/>
+<stringAttribute key="com.csky.cds.debug.core.system_csvc_path" value=""/>
+<stringAttribute key="command_timeout" value="60"/>
+<booleanAttribute key="debug_in_flash_verify" value="true"/>
+<stringAttribute key="debug_target" value="local_jtag"/>
+<booleanAttribute key="do_not_erase" value="false"/>
+<booleanAttribute key="enable_debug_printf" value="false"/>
+<booleanAttribute key="enable_trace_qemu" value="false"/>
+<booleanAttribute key="erase_sector" value="true"/>
+<stringAttribute key="ice_clk" value="12000"/>
+<stringAttribute key="localjtag_flags" value=""/>
+<stringAttribute key="mtcr_delay" value="10"/>
+<stringAttribute key="openocd_config_options" value=""/>
+<stringAttribute key="openocd_executable_path" value="openocd-core-v"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="riscv64-unknown-elf-gdb"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.GDB_INIT" value=""/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.HOST" value="localhost"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.PORT" value="1025"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.REMOTE_TIMEOUT_VALUE" value="2"/>
+<stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
+<stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_ID" value="gdbserver"/>
+<stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_START_MODE" value="remote"/>
+<booleanAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN" value="true"/>
+<stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_STOP_AT_MAIN_SYMBOL" value="main"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="out/bm_duo256.elf"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="bm4duo"/>
+<booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="true"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="cds.managedbuild.toolchain.ckcoregcc.base.elf.archiver.riscv64.1915707266"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/bm4duo"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;/&gt;&#13;&#10;"/>
+<booleanAttribute key="output log" value="false"/>
+<stringAttribute key="process_factory_id" value="org.eclipse.cdt.dsf.gdb.GdbProcessFactory"/>
+<booleanAttribute key="qemu_callgraph" value="true"/>
+<stringAttribute key="server_mode" value="jtag_run"/>
+<stringAttribute key="sim_machine" value=""/>
+<stringAttribute key="sim_machine_path" value=""/>
+<stringAttribute key="sim_mode" value="Qemu System Mode"/>
+<stringAttribute key="sim_other_flags" value=""/>
+<booleanAttribute key="use nographic option" value="true"/>
+<booleanAttribute key="use_autorun" value="true"/>
+<booleanAttribute key="use_ddc" value="true"/>
+<booleanAttribute key="use_ice" value="true"/>
+<booleanAttribute key="use_loadimage" value="true"/>
+</launchConfiguration>

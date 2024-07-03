@@ -30,7 +30,7 @@ else
 	make clean
 	for case in $CASES; do
 		if [ $case = $1 ]; then
-			CASE=`echo ${case^^}`
+			CASE=`echo $case | tr 'a-z' 'A-Z'`
 			make TEST=$CASE release
 			exit
 		fi

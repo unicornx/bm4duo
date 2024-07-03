@@ -34,7 +34,13 @@ Codename:	focal
 
 **注意**：如果希望采用 Jtag + gdb 进行调试的话，推荐在 Windows 上运行，比较稳定。此时，我们可以在 Windows 上安装 VirtualBox, 然后在 VirtualBox 中安装 Ubuntu。
 
-下载本仓库，假设下载后的路径为 `$WS/bm4duo`。
+APT 安装一些依赖的工具
+```shell
+$ sudo apt update
+$ sudo apt install git build-essential python3
+```
+
+下载本仓库，假设你的工作路径为 `$WS`, 且下载本仓库的路径为 `$WS/bm4duo`。
 
 ```shell
 $ cd $WS

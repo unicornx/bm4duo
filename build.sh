@@ -1,4 +1,4 @@
-#make clean; make release;
+#!/bin/bash
 
 CASES="gpio clock irq pwm rtc rtc_irq wdt adc i2c timer spi dbg"
 

@@ -1,5 +1,17 @@
 ROOT := $(shell pwd)
-TOOL_PATH :=  /opt/bm4duo-toolchain
+
+ifeq ($(OS), Windows_NT)     # is Windows_NT on XP, 2000, 7, Vista, 10...
+    detected_OS := Windows
+else
+    detected_OS := $(shell uname)  # same as "uname -s"
+endif
+#$(info -----> ${detected_OS})
+
+ifeq ($(detected_OS), Windows)
+TOOL_PATH := D:/C-Sky/CDS/MinGW/riscv64-elf-tools/bin
+else
+TOOL_PATH := /opt/bm4duo-toolchain
+endif
 
 # set this to 1 for debug version
 # default debug is disabled
@@ -31,6 +43,11 @@ MKDIR := mkdir -p
 RM := rm -rf
 CP := cp -r
 SSEC := *.slow*
+ifeq ($(detected_OS), Windows)
+PYTHON := python
+else
+PYTHON := python3
+endif
 
 EXT_C_OBJ := $(patsubst %,   %.o, $(EXT_C_SRC))
 A_OBJ   := $(addprefix $(OUTPUT_PATH)/, $(patsubst $(ROOT)/%,   %.o, $(A_SRC)))
@@ -131,10 +148,10 @@ all_config:
 	@$(CC) -E -dM $(DEFS) $(CFLAGS) ./include/config.h | sort | grep "^#define CONFIG_"
 
 chip_conf:
-	python3 ${ROOT}/scripts/chip_conf.py ${OUTPUT_PATH}/chip_conf.bin
+	$(PYTHON) ${ROOT}/scripts/chip_conf.py ${OUTPUT_PATH}/chip_conf.bin
 
 gen_fip: $(BIN) chip_conf
-	python3 ${ROOT}/scripts/fiptool.py -v genfip \
+	$(PYTHON) ${ROOT}/scripts/fiptool.py -v genfip \
 		'${OUTPUT_PATH}/fip.bin' \
 		--MONITOR_RUNADDR="${MONITOR_RUNADDR}" \
 		--BLCP_2ND_RUNADDR="${BLCP_2ND_RUNADDR}" \

@@ -222,7 +222,7 @@ Reading symbols from ./out/bm_duo256.elf...
 (gdb)
 ```
 
-在 Ubuntu 22 以上版本中可能会遇到 `error while loading shared libraries: libncursesw.so.5: cannot open shared object file` 的错误。这是由于我们使用的 Xuantie 的工具链版本依赖的动态库版本和 Ubuntu 22 上默认安装的高版本动态库比起来太低导致，解决方法，可以参考 [这篇网文][6]。
+在 Ubuntu 22 以上版本中可能会遇到 `error while loading shared libraries: libncursesw.so.5: cannot open shared object file` 的错误。这是由于我们使用的 Xuantie 的工具链版本依赖的动态库版本和 Ubuntu 22 上默认安装的高版本动态库比起来太低导致，解决方法，可以参考 [这篇网文][4]。
 
 进入 gdb 后先执行如下命令连上 XuanTie Debug Server。
 
@@ -293,3 +293,4 @@ testcase_main () at /home/u/ws/duo/bm4duo/source/test/test_main.c:18
 [1]:./quick_guide.md
 [2]:https://blog.csdn.net/qq_38420206/article/details/120780572
 [3]:https://www.xrvm.cn/community/download?id=4224237838285213696
+[4]:https://blog.csdn.net/winter99/article/details/117464598

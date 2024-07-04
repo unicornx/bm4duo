@@ -256,7 +256,7 @@ Transfer rate: 68 KB/sec, 3572 bytes/write.
 $2 = (void (*)()) 0x80000000 <entry_vector>
 ```
 
-此时我们就可以执行 gdb 的命令进行调试了。简单演示如下。从 `entry_vector` 开始，我们可以执行 si 单步汇编，也可以设置断点（b）、继续运行（c）、执行单个函数（n）、执行单条 c 语句（s）等常规操作。
+此时我们就可以执行 gdb 的命令进行调试了。简单演示如下。从 `entry_vector` 开始，我们可以执行 si 单步汇编，也可以设置断点（b）、继续运行（c）、执行单个函数（n）、执行单条 c 语句（s）等常规操作。更多 GDB 调试命令使用和技巧可以参考 [《T-HEAD CPU 调试技巧》][3]。
 
 ```shell
 (gdb) si
@@ -292,3 +292,4 @@ testcase_main () at /home/u/ws/duo/bm4duo/source/test/test_main.c:18
 
 [1]:./quick_guide.md
 [2]:https://blog.csdn.net/qq_38420206/article/details/120780572
+[3]:https://www.xrvm.cn/community/download?id=4224237838285213696

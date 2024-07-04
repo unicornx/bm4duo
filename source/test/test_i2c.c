@@ -349,7 +349,7 @@ void i2c_init(uint8_t i2c_id)
 	i2c_set_bus_speed(i2c, I2C_SPEED);
 
 	/* Enable i2c */
-	i2c_enable(i2c, 0);
+	i2c_enable(i2c, 1);
 }
 
 // 如果统一起见，可以都使用 GP4/GP5 上对应的 I2C1

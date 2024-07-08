@@ -3,6 +3,9 @@
 <!-- TOC -->
 
 - [1. 主机 Host 环境安装](#1-主机-host-环境安装)
+	- [1.1. Windows 上安装 CDS 集成开发环境](#11-windows-上安装-cds-集成开发环境)
+	- [1.2. Windows 上安装 Python](#12-windows-上安装-python)
+	- [1.3. Windows 上安装 git](#13-windows-上安装-git)
 - [2. 编译 bm4duo](#2-编译-bm4duo)
 	- [2.1. 在 Windows 上下载 bm4duo](#21-在-windows-上下载-bm4duo)
 	- [2.2. 下载 bm4duo 仓库](#22-下载-bm4duo-仓库)
@@ -25,7 +28,7 @@
 
 # 1. 主机 Host 环境安装
 
-即在 Windows 上安装 CDS 集成开发环境。
+## 1.1. Windows 上安装 CDS 集成开发环境
 
 CDS 全称是 C-Sky Development Suite，即 C-SKY CPU & XuanTie CPU 嵌入式软件集成开发环境。
 
@@ -56,6 +59,16 @@ CDS 全称是 C-Sky Development Suite，即 C-SKY CPU & XuanTie CPU 嵌入式软
 有关 CDS 的使用请 **仔细** 阅读集成开发环境自带的使用说明手册。访问方法：菜单: Help -> Welcome，打开 Welcome 页面后点击 "User Guide" 即可。
 
 ![](./diagrams/cds-welcome.png)
+
+## 1.2. Windows 上安装 Python
+
+bm4duo 编译过程中还需要执行 python 脚本（后缀名为 `.py` 的文件），所以我们还需要在 Windows 上安装 Python。
+
+参考 [Python 官方在线文档之 "4.1. 完整安装程序"][3]。
+
+## 1.3. Windows 上安装 git
+
+参考 [Git for Windows 官方在线文档之 "在 Windows 上安装"][2]。
 
 # 2. 编译 bm4duo
 
@@ -154,7 +167,8 @@ SD 卡引导程序插入 SD 卡槽，开发板 duo256 上电。此时观察开�
 
 
 [1]:./quick_guide.md
-
+[2]:https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%AE%89%E8%A3%85-Git
+[3]:https://docs.python.org/zh-cn/3/using/windows.html#windows-full
 
 
 

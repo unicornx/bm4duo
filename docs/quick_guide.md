@@ -77,7 +77,7 @@ Usage: [BOARD=board] build.sh '-h'|'-a'|<case>
 
 需要注意的是：
 
-- 本仓库支持多个 duo 产品，默认构建 duo256 的程序，如果要切换到其他产品，譬如 duo，可以利用环境变量 `BOARD` 进行指定。
+- 本仓库支持多个 duo 产品，默认构建 duo256 的程序，如果要切换到其他产品，譬如 duo，可以利用环境变量 `BOARD` 进行指定, 譬如要构建 duo 的程序，可以执行 `BOARD=duo ./build.sh xxx`。
 - `-a` 仅用于完整性构建测试，即批处理一次性构建所有的用例。
 - 正常情况下，一次构建只针对一个用例。譬如我们要构建针对 duo256 的 gpio 这个测试用例，可以输入：
   ```shell
@@ -92,13 +92,13 @@ Usage: [BOARD=board] build.sh '-h'|'-a'|<case>
 
 为方便在 Linux 环境下烧写 sd-card，bm4duo 仓库根目录下提供了一个名为 `mkcard.sh` 的脚本，如果您使用的是市面上常用的 USB 接口的 sdcard 读写器，可以直接运行该脚本将生成的 `fip.bin` 文件 写入 sd-card 的第一个分区。该脚本也是一个符号链接，实际执行的文件是 bm4duo 仓库下的 `./scripts/flash_sdcard.sh`。使用该脚本时有以下几点注意一下：
 
-- 该脚本默认您的读卡器连上 Linux 主机后枚举的设备文件名为 `/dev/sdb1`。如果你的设备枚举名称不同，可以在执行脚本时通过环境变量 `DEV` 自行指定。譬如 `DEV=/dev/sdc1 ./mkcard.sh`。
-- 该脚本将 `DEV` 设备挂载到默认的挂载点 `UDISK`, 如果您使用不同的挂载点路径，可以直接修改 `mkcard.sh` 脚本中的环境变量 `UDISK`, 或者和 `DEV` 类似在执行脚本命令时指定。譬如 `UDISK=/mnt/u-disk ./mkcard.sh`
 - 执行该脚本需要 sudo 权限。
+- 该脚本默认您的读卡器连上 Linux 主机后枚举的设备文件名为 `/dev/sdb1`。如果你的设备枚举名称不同，可以在执行脚本时通过环境变量 `DEV` 自行指定。譬如假设您的 sdcard 设备的第一个分区枚举为 `/dev/sdc1`, 则我们可以在 Linux 命令行输入 `DEV=/dev/sdc1 ./mkcard.sh` 来烧写程序。
+- 该脚本将设备 `$DEV` 挂载到挂载点 `$UDISK`, 如果您使用不同的挂载点路径，可以直接修改 `mkcard.sh` 脚本中的环境变量 `UDISK`, 或者和 `DEV` 类似在执行脚本命令时指定。譬如假设您的挂载点路径为 `/mnt/u-disk`, 则我们可以在 Linux 命令行输入 `UDISK=/mnt/u-disk ./mkcard.sh` 来烧写程序。
 
-有关 sd-card 的制作可以参考[《将 RVOS 移植到 MilkV-Duo 上》][1] 的 “sd-card 启动盘的制作” 章节介绍。
+有关 Linux 上 sd-card 的制作可以参考[《将 RVOS 移植到 MilkV-Duo 上》][1] 的 “sd-card 启动盘的制作” 章节介绍。其他系统（如 Windows 上操作可自行尝试，这里不再给出。）
 
-有关开发板接串口可以参考[《将 RVOS 移植到 MilkV-Duo 上》][1] 的 “其他注意事项：串口连接和设置” 章节介绍。
+有关 Linux 上开发板接串口可以参考[《将 RVOS 移植到 MilkV-Duo 上》][1] 的 “其他注意事项：串口连接和设置” 章节介绍。其他系统（如 Windows 上操作可自行尝试，这里不再给出。）
 
 # 4. Jtag + GDB 调试
 

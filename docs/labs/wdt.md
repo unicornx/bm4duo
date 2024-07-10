@@ -15,7 +15,6 @@ OPENSBI: next_addr=0x80200020 arg1=0x80080000
 ---> 1s delay
 ---> 1s delay
 ---> Watchdog timer expired!
-Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ---> 1s delay
@@ -27,7 +26,6 @@ Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ---> Watchdog timer expired!
-Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ---> 1s delay
@@ -40,7 +38,6 @@ Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ---> Watchdog timer expired!
-Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ---> 1s delay
@@ -52,7 +49,6 @@ Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ---> Watchdog timer expired!
-Hallelu Yah! I'm alive!
 ---> 1s delay
 ---> 1s delay
 ......
@@ -121,5 +117,3 @@ OPENSBI: next_addr=0x80200020 arg1=0x80080000
 ====> test start
 ......
 ```
-
-

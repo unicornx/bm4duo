@@ -7,7 +7,9 @@
  * 
  * 为简化外部电路设计，本实验使用开发板上自带的 LED 实现一个简单的开关闪烁。
  * 
- * 注意 DUO256 和 DUO 开发板上 LED 引脚连接方式不同导致我们用不同函数实现
+ * 注意 DUO256 和 DUO 开发板上 LED 引脚连接方式不同导致我们用不同函数实现。
+ * 
+ * 更多实验说明，参考 `docs/labs/gpio.md`。
  */
 
 static inline void delay(unsigned int times)

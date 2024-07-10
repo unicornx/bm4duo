@@ -1,6 +1,8 @@
 // 本实验演示 SPI 接口
-// 如果定义 LOOP 为 1 则演示 SPI 的 loop test 功能，数据简单地回环，发送到 TX FIFO 后再从自己的 RX FIFO 中读出来。
-// 如果定义 LOOP 为 0 则演示通过 SPI 接口访问采用 SSD1306 芯片驱动的 OLED 屏幕，显式简单的字符阵列。
+// 如果定义 LOOP 为 1 则演示 SPI 的 loop test 功能，数据简单地回环，发送到
+// TX FIFO 后再从自己的 RX FIFO 中读出来。
+// 如果定义 LOOP 为 0 则演示通过 SPI 接口访问采用 SSD1306 芯片驱动的 OLED 屏幕，
+// 显式简单的字符阵列。更多实验说明，参考 `docs/labs/spi.md`。
 
 #include "common.h"
 

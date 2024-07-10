@@ -2,6 +2,7 @@
 
 // 本实验演示通过 PWM 产生方波驱动无源扬声器发出声音
 // 参考【DUO256-PINOUT】，利用 GP4 的 PWM5 功能，duo 的引脚连接方式相同。
+// 更多实验说明，参考 `docs/labs/pwm.md`。
 
 #define REG_PWM_BASE		REG_PWM1_BASE
 void test_pwm()

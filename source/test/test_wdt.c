@@ -1,5 +1,6 @@
 /*
  * 本实验演示 WatchDog 的使用
+ * 更多实验说明，参考 `docs/labs/wdt.md`。
  */
 
 #include "common.h"

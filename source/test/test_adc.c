@@ -2,6 +2,7 @@
 
 // 演示通过 ADC 采样电压值
 // 使用 DUO 上默认的 ADC1
+// 更多实验说明，参考 `docs/labs/adc.md`。
 
 #define NUM 10
 

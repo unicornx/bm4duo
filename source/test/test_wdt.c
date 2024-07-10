@@ -17,7 +17,6 @@ void wdt_feeddog()
 	// 任何场景下发生。
 	mmio_read_32(WATCHDOG1_BASE + WDT_EOI);
 #endif
-	printf("Hallelu Yah! I'm alive!\n");
 }
 
 static int wdt_isr(int intrid, void *priv)

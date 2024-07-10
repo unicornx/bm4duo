@@ -50,8 +50,12 @@ int testcase_main(void)
 	printf("====> Running SPI example ......\n");
 	test_spi();
 
+#elif defined(CONFIG_TEST_LPC)
+	printf("====> Running Low-Power-Consumption example ......\n");
+	test_lpc();
+
 #else
-	printf("None test is running!\n");
+	printf("No test is selected, please double-check!\n");
 
 #endif
 

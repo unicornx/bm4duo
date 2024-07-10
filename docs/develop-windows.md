@@ -66,6 +66,16 @@ bm4duo 编译过程中还需要执行 python 脚本（后缀名为 `.py` 的文�
 
 参考 [Python 官方在线文档之 "4.1. 完整安装程序"][3]。
 
+请确保将安装目录添加到系统 PATH 环境变量中。具体可以参考 [《Python安装后的环境变量配置》][4]。
+
+为验证安装成功，可以点击 CDS 工具栏上的 `"C-Sky Console"` 按钮，如下所示：
+
+![](./diagrams/cds-console.png)
+
+打开 C-Sky Console 后，执行 `bash` 命令启动 bash，然后在 bash 中执行 `python` 命令, 看看是否可以执行成功, 如下图所示。
+
+![](./diagrams/cds-python.png)
+
 ## 1.3. Windows 上安装 git
 
 参考 [Git for Windows 官方在线文档之 "在 Windows 上安装"][2]。
@@ -169,6 +179,7 @@ SD 卡引导程序插入 SD 卡槽，开发板 duo256 上电。此时观察开�
 [1]:./quick_guide.md
 [2]:https://git-scm.com/book/zh/v2/%E8%B5%B7%E6%AD%A5-%E5%AE%89%E8%A3%85-Git
 [3]:https://docs.python.org/zh-cn/3/using/windows.html#windows-full
+[4]:https://blog.csdn.net/qq_40584683/article/details/126954120
 
 
 

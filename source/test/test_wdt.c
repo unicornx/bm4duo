@@ -4,10 +4,8 @@
 
 #include "common.h"
 
-static int wdt_isr(int intrid, void *priv)
+void wdt_feeddog()
 {
-	printf("---> wdt!\n");
-
 #if 1
 	// 设置 0x76 确保安全地重启 WDT 计数器
 	// A restart also clears the WDT interrupt.
@@ -19,11 +17,25 @@ static int wdt_isr(int intrid, void *priv)
 	// 任何场景下发生。
 	mmio_read_32(WATCHDOG1_BASE + WDT_EOI);
 #endif
+	printf("Hallelu Yah! I'm alive!\n");
+}
+
+static int wdt_isr(int intrid, void *priv)
+{
+	printf("---> Watchdog timer expired!\n");
+
+	wdt_feeddog();
 
 	return 0;
 }
 
-void wdt_init()
+/*
+ * @torr: WDT_TORR.WDT_TORR
+ * @itorr: WDT_TORR.WDT_ITORR
+ * @toc: WDT_TOC
+ * 本 demo 中 WDT_CR.TOR_MODE = WDT_CR.ITOR_MODE 固定为 1
+ */
+void wdt_init(int32_t torr, int32_t itorr, int32_t toc)
 {
 #if 0
 	// 本段代码注释部分仅仅用于调试，打印了系统初始化阶段一些相关寄存器的内容
@@ -65,28 +77,15 @@ void wdt_init()
 	// WDT_TORR.WDT_ITORR 也分两种 mode，mode 的值由另外一个寄存器 WDT_CR.ITOR_MODE 决定
 	// 大致的思路是，以 TOP 为例，ITOP 类似。
 	// 如果 mode 为 0，则 T = 2^(16 + WDT_TORR)，
-	// 如果 mode 为 1，则 T = WDT_TOC << (WDT_TORR +1)
+	// 如果 mode 为 1，则 T = WDT_TOC << (WDT_TORR + 1)
 	// 也就是说 mode 为 0 时，T 只取决于 WDT_TORR 而且是 64k 的整数倍，最大不会超过 2^(16+15)
 	// 如果 mode 为 1，则可以自己设置一个数（由另一个寄存器 WDT_TOC）指定，
 	// 并左移 [0, 16] 位，即本身或者乘上 2^16 倍
 	//
-	// 本测试例子，取值设置如下：
-	// WDT_CR.TOR_MODE = WDT_CR.ITOR_MODE = 1
-	// WDT_TORR.WDT_TORR = 11
-	// WDT_TORR.WDT_ITORR = 10
-	// WDT_TOC = 64000
-	// 默认为 25Mhz 的时钟
-	// 那么对于 T_TOR = WDT_TOC << (WDT_TORR +1) = 64000 << 12, 实际时长为 (64000 << 12) *（1/25M）~= 10s
-	// 那么对于 T_ITOR = WDT_TOC << (WDT_TORR +1) = 64000 << 11, 实际时长为 (6400 << 11) *（1/25M）~= 5s
-	// 也就是上电或者 reset 后第一次 TOP 为 5 秒，此后的 TOP 为 10 秒
-	// 如果我们在 wdt timer irq handler 中喂狗的话，会看到上电或者复位后第一
-	// 次 5s 后中断到，此后 10s 中断到。
-	// 如果我们在 wdt timer irq handler 中不喂狗的话，会看到上电或者复位后第
-	// 一次 5s 后中断到，再过 10s 后系统复位重启。
-	mmio_write_32(WATCHDOG1_BASE + WDT_TORR, 10 << 4 | 11);
+	mmio_write_32(WATCHDOG1_BASE + WDT_TORR, (itorr & 0xf) << 4 | (torr & 0xf));
   
 	// WDT_TOC/Time Out Count
-	mmio_write_32(WATCHDOG1_BASE + WDT_TOC, 64000);
+	mmio_write_32(WATCHDOG1_BASE + WDT_TOC, (toc & 0xffff));
   
 	// WDT_CR/Control register
 	// - [0] WDT enable: WDT 的启动控制位，如果启动了，只有发生 reset 后该位
@@ -95,7 +94,7 @@ void wdt_init()
 	// - [1] response mode: 这里我们设置超时两次才重启
 	// - [4:2] reset pulse length，即系统 reset 过程中保持 assert 的持续时长，
 	//   单位是 pclk 的脉冲周期: 这里我们取 32 个 pclk cycles
-	// - [6]: 1 << 6, 1 the mode of timeout period
+	// - [6]: 1 << 6, the mode of timeout period
 	// - [7]: 1 << 7, the mode of timeout period for initialization
 	mmio_write_32(WATCHDOG1_BASE + WDT_CR,
 			WDT_CR_ENABLE |
@@ -107,9 +106,21 @@ void wdt_init()
 
 void test_wdt()
 {
-	request_irq(WDT1_INTR, wdt_isr,0,"WDT INT",0);
+	request_irq(WDT1_INTR, wdt_isr, 0, "WDT INT", 0);
 
-	wdt_init();
+	// 本测试例子，取值设置如下：
+	// WDT_TORR.WDT_TORR = 11
+	// WDT_TORR.WDT_ITORR = 10
+	// WDT_TOC = 64000
+	// 默认为 25Mhz 的时钟
+	// 那么对于 T_TOR = WDT_TOC << (WDT_TORR.WDT_TORR + 1) = 64000 << 12, 实际时长为 (64000 << 12) *（1/25M）~= 10s
+	// 那么对于 T_ITOR = WDT_TOC << (WDT_TORR.WDT_ITORR + 1) = 64000 << 11, 实际时长为 (6400 << 11) *（1/25M）~= 5s
+	// 也就是上电或者 reset 后第一次 TOP 为 5 秒，此后的 TOP 为 10 秒
+	// 如果我们在 wdt timer irq handler 中喂狗的话，会看到上电或者复位后第一
+	// 次 5s 后中断到，此后 10s 中断到。
+	// 如果我们在 wdt timer irq handler 中不喂狗的话，会看到上电或者复位后第
+	// 一次 5s 后中断到，再过 10s 后系统复位重启。
+	wdt_init(11, 10, 64000);
 
 	while (1) {
 		// 每过 1 s 打印一下，方便观测我们 TOP 的工作顺序。

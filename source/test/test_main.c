@@ -42,6 +42,10 @@ int testcase_main(void)
 	printf("====> Running I2C example ......\n");
 	test_i2c();
 
+#elif defined(CONFIG_TEST_I2C_S)
+	printf("====> Running I2C Slave example ......\n");
+	test_i2c_slave();
+
 #elif defined(CONFIG_TEST_TIMER)
 	printf("====> Running TIMER example ......\n");
 	test_timer();

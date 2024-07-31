@@ -25,13 +25,7 @@
 #define STATUS_WRITE_IN_PROGRESS	0x1
 #define STATUS_READ_IN_PROGRESS		0x2
 
-#define I2C0                    0x0
-#define I2C1                    0x1
-#define I2C2                    0x2
-#define I2C3                    0x3
-#define I2C4                    0x4
-
-static struct i2c_regs *i2c_get_base(uint8_t i2c_id)
+struct i2c_regs *i2c_get_base(uint8_t i2c_id)
 {
     struct i2c_regs *i2c_base = NULL;
 
@@ -164,14 +158,6 @@ static int i2c_xfer_finish(struct i2c_regs *i2c)
 	return 0;
 }
 
-/*
- * Read from slave memory.
- * @i2c_id: i2c controller id
- * @dev: slave device address
- * @addr: slave register address to read from, 8bit width
- * @buffer: buffer to store the data read
- * @len: number of bytes to be read
- */
 int i2c_read(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_t len)
 {
 	struct i2c_regs *i2c;
@@ -216,24 +202,6 @@ int i2c_read(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_
 	return ret;
 }
 
-/*
- * i2c_write - Write to i2c memory
- * @chip:	target i2c address
- * @addr:	address to read from
- * @alen:
- * @buffer:	buffer for read data
- * @len:	no of bytes to be read
- *
- * Write to i2c memory.
- */
-/*
- * Write to slave memory.
- * @i2c_id: i2c controller id
- * @dev: slave device address
- * @addr: slave register address to read from, 8bit width
- * @buffer: buffer to store the data to be written
- * @len: number of bytes to be written
- */
 int i2c_write(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_t len)
 {
 	struct i2c_regs *i2c;
@@ -265,7 +233,7 @@ int i2c_write(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16
 }
 
 /*
- * hal_i2c_set_bus_speed - Set the i2c speed
+ * i2c_set_bus_speed - Set the i2c speed
  * @speed:	required i2c speed
  *
  * Set the i2c speed.
@@ -328,13 +296,6 @@ static void i2c_set_bus_speed(struct i2c_regs *i2c, unsigned int speed)
 	i2c_enable(i2c, 1);
 }
 
-/*
- * __hal_i2c_init - Init function
- * @speed:	required i2c speed
- * @slaveaddr:	slave address for the device
- *
- * Initialization function.
- */
 void i2c_init(uint8_t i2c_id)
 {
 	struct i2c_regs *i2c;

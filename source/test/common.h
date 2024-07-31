@@ -35,6 +35,7 @@ extern void test_rtc_irq();
 extern void test_wdt();
 extern void test_adc();
 extern void test_i2c();
+extern void test_i2c_slave();
 extern void test_timer();
 extern void test_spi();
 extern void test_lpc();

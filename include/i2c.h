@@ -199,4 +199,55 @@ struct i2c_regs {
 
 #define I2C_SPEED		I2C_FAST_SPEED
 
+
+// ID of I2C controller
+#define I2C0                    0x0
+#define I2C1                    0x1
+#define I2C2                    0x2
+#define I2C3                    0x3
+#define I2C4                    0x4
+
+/*
+ * i2c_init: Init an i2c controller
+ *
+ * @i2c_id: ID of I2C controller
+ */
+extern void i2c_init(uint8_t i2c_id);
+
+/*
+ * i2c_get_base: get base address
+ *
+ * @i2c_id: ID of I2C controller
+ *
+ * Return: struct of i2c_regs, which is pointer to the base address of
+ *         specified i2c controller.
+ */
+extern struct i2c_regs *i2c_get_base(uint8_t i2c_id);
+
+/*
+ * i2c_read: Read data from slave.
+ *
+ * @i2c_id: ID of I2C controller
+ * @dev: slave device address
+ * @addr: slave register address to read from, 8bit width
+ * @buffer: buffer to store the data read
+ * @len: number of bytes to be read
+ *
+ * Return: 0 success, else failed
+ */
+extern int i2c_read(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_t len);
+
+/*
+ * i2c_write: Write data to slave
+ *
+ * @i2c_id: i2c controller id
+ * @dev: slave device address
+ * @addr: slave register address to read from, 8bit width
+ * @buffer: buffer to store the data to be written
+ * @len: number of bytes to be written
+ *
+ * Return: 0 successs, else failed
+ */
+extern int i2c_write(uint8_t i2c_id, uint8_t dev, uint8_t addr, uint8_t *buffer, uint16_t len);
+
 #endif // __IIC_H__

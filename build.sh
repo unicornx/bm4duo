@@ -1,6 +1,6 @@
 #!/bin/bash
 
-CASES="gpio clock irq pwm rtc rtc_irq wdt adc i2c timer spi lpc dbg"
+CASES="gpio clock irq pwm rtc rtc_irq wdt adc i2c i2c_s timer spi lpc dbg"
 
 usage ()
 {
